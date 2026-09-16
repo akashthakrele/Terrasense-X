@@ -28,6 +28,9 @@
             --font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
 
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
         * {
             box-sizing: border-box;
             margin: 0;
@@ -689,14 +692,30 @@
                 </div>
 
                 <div class="chips-container">
-                    <div class="chip" onclick="setSearch('Construction near river')">Construction near river</div>
-                    <div class="chip" onclick="setSearch('Urban expansion')">Urban expansion</div>
-                    <div class="chip" onclick="setSearch('Forest clearing')">Forest clearing</div>
-                    <div class="chip" onclick="setSearch('Road development')">Road development</div>
-                    <div class="chip" onclick="setSearch('Solar panels')">Solar panels</div>
+                    <div class="chip" onclick="setSearch('Building area')">Building area</div>
+                    <div class="chip" onclick="setSearch('Industrial area')">Industrial area</div>
+                    <div class="chip" onclick="setSearch('Roads')">Roads</div>
+                    <div class="chip" onclick="setSearch('Farmland')">Farmland</div>
+                    <div class="chip" onclick="setSearch('Urban scene')">Urban scene</div>
                 </div>
                 
-                <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem;">Demo index: 20 temporal pairs (40 satellite images). This is a local demonstration subset.</div>
+                <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem; line-height: 1.5;">
+                    Current semantic index: <strong style="color:var(--text-secondary)">40-image S2Looking demonstration subset.</strong>
+                    Results are limited to scenes present in this local index. Queries for concepts not represented (e.g. solar panels, water, forest) will return a no-match notice.
+                </div>
+
+                <div style="margin-bottom: 2rem;">
+                    <div style="display: flex; gap: 1rem; margin-bottom: 1rem; border-bottom: 1px solid var(--border-subtle); padding-bottom: 1rem;">
+                        <label style="cursor: pointer; display: flex; align-items: center; gap: 0.5rem;">
+                            <input type="radio" name="dataset" value="ssl4eo" checked>
+                            <span style="font-weight: 500;">GEO SEARCH — SSL4EO</span>
+                        </label>
+                        <label style="cursor: pointer; display: flex; align-items: center; gap: 0.5rem; color: var(--text-secondary);">
+                            <input type="radio" name="dataset" value="s2looking">
+                            <span>CHANGE BENCHMARK — S2LOOKING</span>
+                        </label>
+                    </div>
+                </div>
 
                 <div id="searchResults" class="results-list">
                     <div style="color: var(--text-secondary); font-size: 0.9rem;">No search executed yet.</div>
@@ -705,14 +724,239 @@
 
             <!-- Change Analysis Page -->
             <div id="page-change" class="page">
-                <div class="page-header">
-                    <h2 class="page-title">Multi-temporal Change Analysis</h2>
-                    <p class="page-subtitle">Detect structural change while reducing false alarms.</p>
+                <!-- Page header with offline badge -->
+                <div class="page-header" style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:1rem;">
+                    <div>
+                        <h2 class="page-title">Multi-temporal Change Analysis</h2>
+                        <p class="page-subtitle">Compare two observations and investigate detected temporal change.</p>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:8px; padding:6px 14px; background:var(--bg-elevated); border:1px solid var(--border-subtle); border-radius:20px; font-size:0.78rem;">
+                        <span style="width:8px;height:8px;border-radius:50%;background:var(--status-success);display:inline-block;"></span>
+                        <span style="color:var(--text-secondary);">OFFLINE</span>
+                        <span style="color:var(--border-subtle);">•</span>
+                        <span style="color:var(--text-secondary);">LOCAL</span>
+                    </div>
                 </div>
-                <div style="color: var(--text-secondary); font-size: 0.9rem; padding: 2rem; text-align: center; border: 1px dashed var(--border-subtle); border-radius: 8px;">
-                    Please run a Semantic Search and click <strong>"VIEW CHANGE"</strong> on a pair to begin analysis.
+
+                <!-- Pair Selector Bar -->
+                <div style="background:var(--bg-panel); border:1px solid var(--border-subtle); border-radius:8px; padding:1rem 1.5rem; margin-bottom:1.5rem; display:flex; align-items:center; gap:1.5rem; flex-wrap:wrap;">
+                    <div style="display:flex; flex-direction:column; gap:4px;">
+                        <label style="font-size:0.7rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.08em;">Dataset</label>
+                        <div style="font-size:0.9rem; color:var(--text-secondary); background:var(--bg-elevated); padding:6px 14px; border-radius:4px; border:1px solid var(--border-subtle);">S2Looking Demo</div>
+                    </div>
+                    <div style="display:flex; flex-direction:column; gap:4px;">
+                        <label style="font-size:0.7rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.08em;" for="pairSelect">Temporal Pair</label>
+                        <select id="pairSelect" style="font-size:0.9rem; color:var(--text-primary); background:var(--bg-elevated); padding:6px 14px; border-radius:4px; border:1px solid var(--border-subtle); cursor:pointer; min-width:160px;">
+                            <option value="">— select pair —</option>
+                            <option value="1.png">1.png</option>
+                            <option value="10.png">10.png</option>
+                            <option value="100.png">100.png</option>
+                            <option value="1000.png">1000.png</option>
+                            <option value="1002.png">1002.png</option>
+                            <option value="1003.png">1003.png</option>
+                            <option value="1004.png">1004.png</option>
+                            <option value="1005.png">1005.png</option>
+                            <option value="1006.png">1006.png</option>
+                            <option value="1007.png">1007.png</option>
+                            <option value="1009.png">1009.png</option>
+                            <option value="101.png">101.png</option>
+                            <option value="1010.png">1010.png</option>
+                            <option value="1012.png">1012.png</option>
+                            <option value="1013.png">1013.png</option>
+                            <option value="1014.png">1014.png</option>
+                            <option value="1015.png">1015.png</option>
+                            <option value="1017.png">1017.png</option>
+                            <option value="1018.png">1018.png</option>
+                            <option value="1019.png">1019.png</option>
+                        </select>
+                    </div>
+                    <div style="display:flex; gap:10px; align-items:flex-end; padding-top:20px;">
+                        <button id="btnAnalyze" onclick="runChangeAnalysis()" style="background:var(--accent-blue); color:#fff; border:none; padding:7px 22px; border-radius:4px; font-size:0.9rem; font-weight:600; cursor:pointer; transition:opacity 0.2s;">ANALYZE</button>
+                        <button onclick="nav('explore')" style="background:transparent; border:1px solid var(--border-subtle); color:var(--text-secondary); padding:7px 16px; border-radius:4px; font-size:0.85rem; cursor:pointer; transition:all 0.2s;">OPEN FROM SEARCH</button>
+                    </div>
                 </div>
+
+                <!-- Empty state -->
+                <div id="ca-empty" style="border:1px dashed var(--border-subtle); border-radius:8px; padding:3rem; text-align:center;">
+                    <div style="font-size:2.5rem; margin-bottom:1rem;">🛰️</div>
+                    <div style="font-size:1.1rem; font-weight:600; color:var(--text-primary); margin-bottom:0.5rem;">Select a temporal pair to begin analysis</div>
+                    <p style="color:var(--text-secondary); font-size:0.9rem; margin-bottom:1.5rem; max-width:380px; margin-left:auto; margin-right:auto; line-height:1.6;">Choose a pair from the dropdown above and click ANALYZE to run the V2 change detection pipeline locally.</p>
+                    <div style="display:flex; justify-content:center; gap:10px;">
+                        <button onclick="document.getElementById('pairSelect').value='1.png'; runChangeAnalysis();" style="background:var(--accent-blue); color:#fff; border:none; padding:8px 20px; border-radius:4px; font-size:0.85rem; cursor:pointer;">Quick Start: Pair 1.png</button>
+                        <button onclick="nav('explore')" style="background:transparent; border:1px solid var(--border-subtle); color:var(--text-secondary); padding:8px 16px; border-radius:4px; font-size:0.85rem; cursor:pointer;">Open Search</button>
+                    </div>
+                </div>
+
+                <!-- Analysis workspace (hidden until analyzed) -->
+                <div id="ca-workspace" style="display:none;">
+
+                    <!-- Loading spinner -->
+                    <div id="ca-loading" style="display:none; text-align:center; padding:3rem; color:var(--text-secondary); font-size:0.9rem;">
+                        <div style="width:32px; height:32px; border:3px solid var(--border-subtle); border-top-color:var(--accent-cyan); border-radius:50%; animation:spin 0.8s linear infinite; margin:0 auto 1rem;"></div>
+                        Running V2 change detection pipeline...
+                    </div>
+
+                    <!-- Results -->
+                    <div id="ca-results" style="display:none;">
+
+                        <!-- BEFORE / AFTER comparison -->
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; margin-bottom:1.5rem;">
+                            <div style="background:var(--bg-panel); border:1px solid var(--border-subtle); border-radius:8px; overflow:hidden;">
+                                <div style="padding:10px 16px; background:var(--bg-elevated); border-bottom:1px solid var(--border-subtle); display:flex; align-items:center; gap:8px;">
+                                    <span style="width:8px;height:8px;border-radius:2px;background:#6e7681;display:inline-block;"></span>
+                                    <span style="font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-secondary);">BEFORE — T1</span>
+                                    <span style="margin-left:auto; font-size:0.7rem; color:var(--text-muted);">Earlier observation</span>
+                                </div>
+                                <img id="ca-img-before" src="" style="width:100%; display:block; aspect-ratio:1/1; object-fit:cover;" onerror="this.style.opacity=0.2">
+                            </div>
+                            <div style="background:var(--bg-panel); border:1px solid var(--border-subtle); border-radius:8px; overflow:hidden;">
+                                <div style="padding:10px 16px; background:var(--bg-elevated); border-bottom:1px solid var(--border-subtle); display:flex; align-items:center; gap:8px;">
+                                    <span style="width:8px;height:8px;border-radius:2px;background:var(--accent-cyan);display:inline-block;"></span>
+                                    <span style="font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--accent-cyan);">AFTER — T2</span>
+                                    <span style="margin-left:auto; font-size:0.7rem; color:var(--text-muted);">Later observation</span>
+                                </div>
+                                <img id="ca-img-after" src="" style="width:100%; display:block; aspect-ratio:1/1; object-fit:cover;" onerror="this.style.opacity=0.2">
+                            </div>
+                        </div>
+
+                        <!-- Change Map -->
+                        <div style="background:var(--bg-panel); border:1px solid var(--border-subtle); border-radius:8px; overflow:hidden; margin-bottom:1.5rem;">
+                            <div style="padding:12px 16px; background:var(--bg-elevated); border-bottom:1px solid var(--border-subtle); display:flex; align-items:center; justify-content:space-between;">
+                                <div style="display:flex; align-items:center; gap:8px;">
+                                    <span style="font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em;">DETECTED CHANGE</span>
+                                    <span style="font-size:0.7rem; color:var(--text-muted);">V2 pipeline output — not ground truth</span>
+                                </div>
+                                <div style="display:flex; align-items:center; gap:6px; font-size:0.75rem; color:var(--text-secondary);">
+                                    <span style="display:inline-block; width:12px; height:12px; background:rgba(255,60,0,0.7); border-radius:2px;"></span>
+                                    Detected difference
+                                </div>
+                            </div>
+                            <div id="ca-overlay-wrap" style="position:relative; background:#000; min-height:200px; display:flex; align-items:center; justify-content:center;">
+                                <img id="ca-img-overlay" src="" style="width:100%; max-height:400px; object-fit:contain; display:block;" onerror="this.style.display='none'; document.getElementById('ca-overlay-fallback').style.display='block'">
+                                <div id="ca-overlay-fallback" style="display:none; padding:2rem; color:var(--text-muted); font-size:0.85rem;">Change overlay not available for this pair.</div>
+                            </div>
+                        </div>
+
+                        <!-- Metrics + Confounders + Ground Truth row -->
+                        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:1.5rem; margin-bottom:1.5rem;">
+
+                            <!-- What Changed card -->
+                            <div style="background:var(--bg-panel); border:1px solid var(--border-subtle); border-radius:8px; padding:1.25rem;">
+                                <div style="font-size:0.65rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--text-muted); margin-bottom:0.75rem;">What Changed?</div>
+                                <p id="ca-summary" style="font-size:0.88rem; color:var(--text-primary); line-height:1.6; margin-bottom:1.25rem;">—</p>
+
+                                <div style="display:flex; flex-direction:column; gap:0.6rem;">
+                                    <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--border-subtle);">
+                                        <span style="font-size:0.8rem; color:var(--text-secondary);">Detected area</span>
+                                        <span id="ca-area" style="font-size:1rem; font-weight:700; color:var(--accent-cyan); font-family:monospace;">—</span>
+                                    </div>
+                                    <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--border-subtle);">
+                                        <span style="font-size:0.8rem; color:var(--text-secondary);">Detected regions</span>
+                                        <span id="ca-regions" style="font-size:1rem; font-weight:700; color:var(--accent-cyan); font-family:monospace;">—</span>
+                                    </div>
+                                    <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0;">
+                                        <span style="font-size:0.8rem; color:var(--text-secondary);">Review status</span>
+                                        <span id="ca-status" style="font-size:0.78rem; font-weight:700; padding:3px 10px; border-radius:3px; background:var(--bg-elevated); letter-spacing:0.05em;">—</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Potential Confounders -->
+                            <div style="background:var(--bg-panel); border:1px solid var(--border-subtle); border-radius:8px; padding:1.25rem;">
+                                <div style="font-size:0.65rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--text-muted); margin-bottom:0.5rem;">Potential Confounders</div>
+                                <p style="font-size:0.75rem; color:var(--text-muted); line-height:1.5; margin-bottom:1rem;">These factors can create visual differences that may not represent structural change.</p>
+                                <ul id="ca-confounders" style="list-style:none; display:flex; flex-direction:column; gap:6px;">
+                                    <li style="color:var(--text-muted); font-size:0.85rem;">—</li>
+                                </ul>
+                                <div style="margin-top:1rem; padding-top:1rem; border-top:1px solid var(--border-subtle);">
+                                    <button onclick="toggleCAFalseAlarm()" style="background:transparent; border:none; color:var(--text-secondary); font-size:0.78rem; cursor:pointer; text-decoration:underline; padding:0;">All possible confounders ▼</button>
+                                    <ul id="ca-all-confounders" style="display:none; margin-top:0.75rem; padding-left:0; list-style:none; display:none; flex-direction:column; gap:5px; font-size:0.82rem; color:var(--text-muted);">
+                                        <li>• Vegetation / seasonal variation</li>
+                                        <li>• Shadow / illumination</li>
+                                        <li>• Viewpoint / alignment</li>
+                                        <li>• Haze / cloud-like appearance</li>
+                                        <li>• Image registration error</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <!-- Ground Truth / Reference -->
+                            <div style="background:var(--bg-panel); border:1px solid var(--border-subtle); border-radius:8px; padding:1.25rem;">
+                                <div style="font-size:0.65rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--text-muted); margin-bottom:0.75rem;">Reference Label</div>
+                                <div style="background:var(--bg-elevated); border-radius:6px; padding:0.9rem; margin-bottom:0.75rem;">
+                                    <div style="font-size:0.75rem; font-weight:600; color:var(--status-warning); margin-bottom:4px;">⚠ Ground Truth</div>
+                                    <p style="font-size:0.82rem; color:var(--text-secondary); line-height:1.5;">Reference annotation available in S2Looking dataset.</p>
+                                </div>
+                                <div style="background:var(--bg-elevated); border-radius:6px; padding:0.9rem;">
+                                    <div style="font-size:0.75rem; font-weight:600; color:var(--accent-blue); margin-bottom:4px;">◈ Model Output</div>
+                                    <p style="font-size:0.82rem; color:var(--text-secondary); line-height:1.5;">V2 pixel-difference pipeline. This is <strong>not</strong> the dataset ground truth.</p>
+                                </div>
+                                <p style="font-size:0.72rem; color:var(--text-muted); margin-top:0.75rem; line-height:1.4;">Model output and reference label are always shown separately. Do not conflate.</p>
+                            </div>
+                        </div>
+
+                        <!-- Analyst Summary -->
+                        <div style="background:var(--bg-panel); border:1px solid var(--border-subtle); border-left: 3px solid var(--accent-cyan); border-radius:8px; padding:1.25rem 1.5rem; margin-bottom:1.5rem;">
+                            <div style="font-size:0.65rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--text-muted); margin-bottom:0.5rem;">Analyst Summary</div>
+                            <p id="ca-analyst-summary" style="font-size:0.95rem; color:var(--text-primary); line-height:1.7;">—</p>
+                        </div>
+
+                        <!-- False-alarm Reduction Benchmark -->
+                        <div style="background:var(--bg-panel); border:1px solid var(--border-subtle); border-radius:8px; overflow:hidden;">
+                            <div style="padding:12px 20px; background:var(--bg-elevated); border-bottom:1px solid var(--border-subtle); display:flex; align-items:baseline; gap:8px;">
+                                <span style="font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em;">False-Alarm Reduction</span>
+                                <span style="font-size:0.72rem; color:var(--text-muted);">20-pair S2Looking pilot — not full-dataset benchmark</span>
+                            </div>
+                            <div style="padding:1.25rem 1.5rem;">
+                                <!-- Big number -->
+                                <div style="display:flex; align-items:baseline; gap:1rem; margin-bottom:1.25rem;">
+                                    <div style="font-size:3rem; font-weight:800; color:var(--status-success); font-family:monospace; line-height:1;">63.47%</div>
+                                    <div>
+                                        <div style="font-size:0.85rem; color:var(--text-primary); font-weight:600;">False Positive Reduction</div>
+                                        <div style="font-size:0.78rem; color:var(--text-muted);">V1 → V2 (alignment + normalization)</div>
+                                    </div>
+                                </div>
+                                <!-- Pixel counts -->
+                                <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; margin-bottom:1rem;">
+                                    <div style="background:var(--bg-elevated); border-radius:6px; padding:0.75rem 1rem;">
+                                        <div style="font-size:0.7rem; text-transform:uppercase; color:var(--text-muted); letter-spacing:0.08em; margin-bottom:4px;">V1 False Positives (raw)</div>
+                                        <div style="font-size:1.1rem; font-weight:700; font-family:monospace; color:var(--status-danger);">1,099,177 px</div>
+                                    </div>
+                                    <div style="background:var(--bg-elevated); border-radius:6px; padding:0.75rem 1rem;">
+                                        <div style="font-size:0.7rem; text-transform:uppercase; color:var(--text-muted); letter-spacing:0.08em; margin-bottom:4px;">V2 False Positives (filtered)</div>
+                                        <div style="font-size:1.1rem; font-weight:700; font-family:monospace; color:var(--status-success);">401,555 px</div>
+                                    </div>
+                                </div>
+                                <!-- Metric table -->
+                                <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:0.75rem;">
+                                    <div style="background:var(--bg-elevated); border-radius:6px; padding:0.75rem; text-align:center;">
+                                        <div style="font-size:0.65rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:4px;">Precision</div>
+                                        <div style="font-size:0.82rem; color:var(--text-secondary);">4.21%</div>
+                                        <div style="font-size:0.7rem; color:var(--status-success);">→ 18.44%</div>
+                                    </div>
+                                    <div style="background:var(--bg-elevated); border-radius:6px; padding:0.75rem; text-align:center;">
+                                        <div style="font-size:0.65rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:4px;">Recall</div>
+                                        <div style="font-size:0.82rem; color:var(--text-secondary);">11.66%</div>
+                                        <div style="font-size:0.7rem; color:var(--status-success);">→ 21.92%</div>
+                                    </div>
+                                    <div style="background:var(--bg-elevated); border-radius:6px; padding:0.75rem; text-align:center;">
+                                        <div style="font-size:0.65rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:4px;">F1</div>
+                                        <div style="font-size:0.82rem; color:var(--text-secondary);">0.0619</div>
+                                        <div style="font-size:0.7rem; color:var(--status-success);">→ 0.2003</div>
+                                    </div>
+                                    <div style="background:var(--bg-elevated); border-radius:6px; padding:0.75rem; text-align:center;">
+                                        <div style="font-size:0.65rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:4px;">IoU</div>
+                                        <div style="font-size:0.82rem; color:var(--text-secondary);">0.0319</div>
+                                        <div style="font-size:0.7rem; color:var(--status-success);">→ 0.1113</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div><!-- /#ca-results -->
+                </div><!-- /#ca-workspace -->
             </div>
+
 
             <!-- System Page -->
             <div id="page-system" class="page">
@@ -766,15 +1010,24 @@
                 
                 <div class="analysis-col">
                     <div class="analysis-section">
+                        <div id="analysisDisclaimer" style="display:none; color: var(--status-warning); font-size: 0.85rem; padding: 10px; background: rgba(255, 165, 0, 0.1); border-left: 3px solid var(--status-warning); margin-bottom: 1rem;">
+                            Experimental temporal analysis — not benchmarked on SSL4EO.
+                        </div>
                         <h3>WHAT CHANGED?</h3>
-                        <p style="font-size: 0.9rem; color: var(--text-primary); margin-bottom: 1rem;">Visual differences were detected between the two acquisition dates.</p>
-                        <div class="stat-line"><span class="sys-label">Changed pixel area:</span><span class="val highlight">1.2%</span></div>
-                        <div class="stat-line"><span class="sys-label">Change confidence:</span><span class="val highlight">0.87</span></div>
-                        <div class="stat-line"><span class="sys-label">Review status:</span><span class="val">REVIEW / HIGH CONFIDENCE</span></div>
+                        <p id="analysisSummary" style="font-size: 0.9rem; color: var(--text-primary); margin-bottom: 1rem;">Loading analysis...</p>
+                        <div class="stat-line"><span class="sys-label">Changed pixel area:</span><span class="val highlight" id="analysisArea">...</span></div>
+                        <div class="stat-line"><span class="sys-label">Detected regions:</span><span class="val highlight" id="analysisRegions">...</span></div>
+                        <div class="stat-line"><span class="sys-label">Review status:</span><span class="val" id="analysisStatus">...</span></div>
                         
                         <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px dashed var(--border-subtle);">
+                            <h4 style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px;">POTENTIAL CONFOUNDERS</h4>
+                            <p id="analysisConfounders" style="font-size: 0.85rem; color: var(--status-warning);">...</p>
+                        </div>
+                        
+                        <div id="referenceLabelSection" style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px dashed var(--border-subtle); display: none;">
                             <h4 style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px;">REFERENCE LABEL</h4>
-                            <p style="font-size: 0.85rem; color: var(--text-secondary);">Reference change: Ground truth annotation available for structural differences.</p>
+                            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 8px;">Ground truth annotation available for structural differences.</p>
+                            <img id="mImgGroundTruth" src="" style="width: 100%; border-radius: 4px; border: 1px solid var(--border-subtle);">
                         </div>
                     </div>
                     
@@ -811,6 +1064,18 @@
     <script>
         // State
         let currentPairs = [];
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('input[name="dataset"]').forEach(radio => {
+                radio.addEventListener('change', (e) => {
+                    if (e.target.value === 's2looking') {
+                        loadS2LookingDemo();
+                    } else {
+                        executeSearch();
+                    }
+                });
+            });
+        });
 
         function nav(pageId) {
             document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('active'));
@@ -846,46 +1111,135 @@
         async function executeSearch() {
             const q = document.getElementById('searchInput').value.trim();
             if(!q) return;
+            
+            const dataset = document.querySelector('input[name="dataset"]:checked').value;
             const container = document.getElementById('searchResults');
             container.innerHTML = '<div class="skeleton" style="height:350px; width:100%;"></div>';
 
             try {
-                const res = await fetch('/search?q=' + encodeURIComponent(q) + '&k=10');
+                const res = await fetch('/search?q=' + encodeURIComponent(q) + '&k=10&dataset=' + dataset);
                 const data = await res.json();
                 currentPairs = data.results || [];
-                
-                if (currentPairs.length > 0) {
-                    let html = '';
-                    currentPairs.forEach((pair, idx) => {
-                        html += `
-                            <div class="pair-card">
-                                <div class="pair-header">
-                                    <div class="pair-header-title">PAIR ${(idx+1).toString().padStart(2, '0')} <span>${pair.pair_id}</span></div>
-                                </div>
-                                <div class="pair-images">
-                                    <div class="img-panel">
-                                        <div class="img-panel-label">BEFORE (T1)</div>
-                                        <img src="${pair.before.url}" onerror="this.style.opacity=0.3">
+
+                if (data.no_match) {
+                    container.innerHTML = `
+                        <div style="border: 1px solid var(--border-subtle); border-radius: 8px; padding: 2rem; text-align: center;">
+                            <div style="font-size: 1.3rem; margin-bottom: 0.5rem;">🛰️</div>
+                            <div style="color: var(--text-primary); font-weight: 600; margin-bottom: 0.5rem;">No Strong Semantic Match</div>
+                            <div style="color: var(--text-secondary); font-size: 0.85rem; max-width: 480px; margin: 0 auto; line-height: 1.6;">${data.no_match_reason}</div>
+                        </div>`;
+                } else if (currentPairs.length > 0) {
+                    if (dataset === 'ssl4eo') {
+                        let html = '<div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:0.75rem; letter-spacing:0.05em;">GEO SEARCH RESULTS — SSL4EO-S12 Dataset</div>';
+                        currentPairs.forEach((loc, idx) => {
+                            let obsHtml = '';
+                            loc.observations.forEach((obs, i) => {
+                                const d = new Date(obs.acquisition_start);
+                                const dateStr = d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+                                obsHtml += `
+                                    <div style="flex: 1; min-width: 150px;">
+                                        <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.25rem;">T${i+1} — ${dateStr}</div>
+                                        <img src="${obs.image_url}" style="width: 100%; border-radius: 4px; border: 1px solid var(--border-subtle);" onerror="this.style.opacity=0.3">
                                     </div>
-                                    <div class="img-panel">
-                                        <div class="img-panel-label">AFTER (T2)</div>
-                                        <img src="${pair.after.url}" onerror="this.style.opacity=0.3">
+                                `;
+                            });
+                            
+                            html += `
+                                <div class="pair-card" style="padding: 1.5rem; background: var(--bg-elevated); border: 1px solid var(--border-subtle); border-radius: 8px; margin-bottom: 1.5rem;">
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border-subtle);">
+                                        <div>
+                                            <div style="font-size: 0.75rem; color: var(--accent-cyan); font-weight: 600; letter-spacing: 0.05em; margin-bottom: 0.25rem;">LOCATION ${loc.location_id}</div>
+                                            <div style="font-size: 1.1rem; font-weight: 500;">${loc.latitude}, ${loc.longitude} <span style="font-size:0.8rem; color:var(--text-muted); font-weight:normal;">(SCENE CENTER)</span></div>
+                                        </div>
+                                        <div style="text-align: right; font-size: 0.85rem; color: var(--text-secondary);">
+                                            <div><strong>CRS:</strong> ${loc.crs}</div>
+                                            <div><strong>SATELLITE:</strong> ${loc.spacecraft}</div>
+                                            <div><strong>SIMILARITY:</strong> ${loc.similarity.toFixed(4)}</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div style="display: flex; gap: 1rem; overflow-x: auto; padding-bottom: 0.5rem; margin-bottom: 1rem;">
+                                        ${obsHtml}
+                                    </div>
+                                    <div style="border-top: 1px solid var(--border-subtle); padding-top: 1rem; display: flex; align-items: center; justify-content: space-between;">
+                                        <div style="font-size: 0.8rem; color: var(--text-secondary);">RUN CHANGE ANALYSIS:</div>
+                                        <div style="display: flex; gap: 0.75rem;">
+                                            ${loc.observations.length >= 2 ? `<button class="btn-view-change" style="padding: 0.4rem 1rem; font-size: 0.75rem;" onclick="openModal('${loc.location_id} T1→T2', '${loc.observations[0].image_url}', '${loc.observations[1].image_url}', 'ssl4eo', '${loc.location_id}', '${loc.observations[0].filename}', '${loc.observations[1].filename}')">T1 → T2</button>` : ''}
+                                            ${loc.observations.length >= 3 ? `<button class="btn-view-change" style="padding: 0.4rem 1rem; font-size: 0.75rem;" onclick="openModal('${loc.location_id} T2→T3', '${loc.observations[1].image_url}', '${loc.observations[2].image_url}', 'ssl4eo', '${loc.location_id}', '${loc.observations[1].filename}', '${loc.observations[2].filename}')">T2 → T3</button>` : ''}
+                                            ${loc.observations.length >= 4 ? `<button class="btn-view-change" style="padding: 0.4rem 1rem; font-size: 0.75rem;" onclick="openModal('${loc.location_id} T3→T4', '${loc.observations[2].image_url}', '${loc.observations[3].image_url}', 'ssl4eo', '${loc.location_id}', '${loc.observations[2].filename}', '${loc.observations[3].filename}')">T3 → T4</button>` : ''}
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="pair-footer">
-                                    <div class="pair-similarity">Semantic Similarity: <span>${pair.similarity.toFixed(4)}</span></div>
-                                    <button class="btn-view-change" onclick="openModal('${pair.pair_id}', '${pair.before.url}', '${pair.after.url}')">VIEW CHANGE</button>
-                                </div>
-                            </div>
-                        `;
-                    });
-                    container.innerHTML = html;
+                            `;
+                        });
+                        container.innerHTML = html;
+                    } else {
+                        // S2Looking is now handled by loadS2LookingDemo() when radio button changes
+                        // But if executeSearch is manually triggered with s2looking selected, we load demo
+                        loadS2LookingDemo();
+                    }
                 } else {
                     container.innerHTML = '<div style="color: var(--text-secondary); font-size: 0.9rem;">No matching pairs found.</div>';
                 }
             } catch (err) {
                 console.error(err);
                 container.innerHTML = '<div style="color: var(--status-danger);">Error fetching pairs.</div>';
+            }
+        }
+
+        async function loadS2LookingDemo() {
+            const container = document.getElementById('searchResults');
+            container.innerHTML = '<div class="skeleton" style="height:350px; width:100%;"></div>';
+            
+            try {
+                const res = await fetch('/s2looking-demo');
+                const data = await res.json();
+                
+                let html = '<div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:0.75rem; letter-spacing:0.05em;">CHANGE BENCHMARK — S2LOOKING DEMO CASES</div>';
+                
+                data.results.forEach((loc, idx) => {
+                    html += `
+                        <div class="pair-card" style="padding: 1.5rem; background: var(--bg-elevated); border: 1px solid var(--border-subtle); border-radius: 8px; margin-bottom: 1.5rem;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border-subtle);">
+                                <div>
+                                    <div style="font-size: 0.75rem; color: var(--accent-cyan); font-weight: 600; letter-spacing: 0.05em; margin-bottom: 0.25rem;">${loc.location_label}</div>
+                                    <div style="font-size: 1.1rem; font-weight: 500; display:flex; align-items:center; gap:0.5rem;">
+                                        ${loc.demo_latitude}, ${loc.demo_longitude}
+                                        <span title="S2Looking does not provide operational coordinates for this benchmark scene." style="font-size:0.65rem; padding: 2px 6px; border-radius: 4px; background: rgba(255,165,0,0.15); color: var(--status-warning); border: 1px solid rgba(255,165,0,0.3); font-weight: 600; cursor: help;">
+                                            SIMULATED GEOREFERENCE ⓘ
+                                        </span>
+                                    </div>
+                                </div>
+                                <div style="text-align: right; font-size: 0.85rem; color: var(--text-secondary);">
+                                    <div><strong>DATASET:</strong> ${loc.dataset}</div>
+                                    <div><strong>STATUS:</strong> ${loc.geo_status}</div>
+                                </div>
+                            </div>
+                            
+                            <div style="display: flex; gap: 1rem; padding-bottom: 0.5rem; margin-bottom: 1rem;">
+                                <div style="flex: 1;">
+                                    <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.25rem;">BEFORE (T1)</div>
+                                    <img src="${loc.before.url}" style="width: 100%; border-radius: 4px; border: 1px solid var(--border-subtle);">
+                                </div>
+                                <div style="flex: 1;">
+                                    <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.25rem;">AFTER (T2)</div>
+                                    <img src="${loc.after.url}" style="width: 100%; border-radius: 4px; border: 1px solid var(--border-subtle);">
+                                </div>
+                            </div>
+                            
+                            <div style="border-top: 1px solid var(--border-subtle); padding-top: 1rem; display: flex; align-items: center; justify-content: space-between;">
+                                <div style="font-size: 0.8rem; color: var(--text-secondary);">RUN CHANGE ANALYSIS:</div>
+                                <div>
+                                    <button class="btn-view-change" style="padding: 0.4rem 1rem; font-size: 0.75rem;" onclick="openModal('${loc.pair_id}', '${loc.before.url}', '${loc.after.url}', 's2looking', '${loc.pair_id}', null, null, '${loc.ground_truth_mask}')">ANALYZE DEMO CASE</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                container.innerHTML = html;
+            } catch (err) {
+                console.error(err);
+                container.innerHTML = '<div style="color: var(--status-danger);">Error fetching demo cases.</div>';
             }
         }
 
@@ -900,30 +1254,188 @@
             }
         }
 
-        function openModal(pairId, beforeUrl, afterUrl) {
-            document.getElementById('modalTitleID').textContent = "• " + pairId;
+        async function openModal(titleText, beforeUrl, afterUrl, dataset, arg1, arg2, arg3, gtMask) {
+            document.getElementById('modalTitleID').textContent = "• " + titleText;
             document.getElementById('mImgBefore').src = beforeUrl;
             document.getElementById('mImgAfter').src = afterUrl;
             
-            // Try to load precomputed compare image. Our pairs are named 1.png, 10.png etc.
-            // Outputs are compare_1.png, compare_10.png
-            const num = pairId.replace('.png', '');
             const compareImg = document.getElementById('mImgCompare');
             const fallback = document.getElementById('mImgCompareFallback');
+            const summaryEl = document.getElementById('analysisSummary');
+            const areaEl = document.getElementById('analysisArea');
+            const regionsEl = document.getElementById('analysisRegions');
+            const statusEl = document.getElementById('analysisStatus');
+            const confoundersEl = document.getElementById('analysisConfounders');
             
-            compareImg.style.display = 'block';
-            fallback.style.display = 'none';
-            compareImg.src = '/outputs/compare_' + num + '.png';
-            compareImg.onerror = function() {
-                this.style.display = 'none';
-                fallback.style.display = 'block';
-            };
+            const refSection = document.getElementById('referenceLabelSection');
+            if(gtMask) {
+                refSection.style.display = 'block';
+                document.getElementById('mImgGroundTruth').src = gtMask;
+            } else {
+                refSection.style.display = 'none';
+            }
+            
+            // Experimental Disclaimer
+            const disclaimerEl = document.getElementById('analysisDisclaimer');
+            if(disclaimerEl) {
+                if(dataset === 'ssl4eo') {
+                    disclaimerEl.style.display = 'block';
+                } else {
+                    disclaimerEl.style.display = 'none';
+                }
+            }
+            
+            compareImg.style.display = 'none';
+            fallback.style.display = 'block';
+            fallback.textContent = 'Generating change map...';
+            summaryEl.textContent = 'Analyzing...';
+            areaEl.textContent = '...';
+            regionsEl.textContent = '...';
+            statusEl.textContent = '...';
+            confoundersEl.textContent = '...';
 
             document.getElementById('changeModal').classList.add('open');
+            
+            try {
+                let fetchUrl = '';
+                if(dataset === 'ssl4eo') {
+                    fetchUrl = `/analyze?dataset=ssl4eo&location_id=${arg1}&obs1=${arg2}&obs2=${arg3}`;
+                } else {
+                    fetchUrl = `/analyze?dataset=s2looking&pair_id=${encodeURIComponent(arg1)}`;
+                }
+                
+                const res = await fetch(fetchUrl);
+                const data = await res.json();
+                
+                if (data.status === 'ok') {
+                    const result = data.result;
+                    summaryEl.textContent = result.summary;
+                    areaEl.textContent = result.changed_area_percent + '% (' + result.changed_pixel_area + ' px)';
+                    regionsEl.textContent = result.detected_regions;
+                    statusEl.textContent = result.review_status;
+                    
+                    if (result.potential_confounders && result.potential_confounders.length > 0) {
+                        confoundersEl.innerHTML = '• ' + result.potential_confounders.join('<br>• ');
+                    } else {
+                        confoundersEl.textContent = 'None detected';
+                    }
+                    
+                    if (result.overlay_url) {
+                        compareImg.style.display = 'block';
+                        fallback.style.display = 'none';
+                        compareImg.src = result.overlay_url;
+                        compareImg.onerror = function() {
+                            this.style.display = 'none';
+                            fallback.style.display = 'block';
+                            fallback.textContent = 'Failed to load change map';
+                        };
+                    }
+                } else {
+                    fallback.textContent = 'Analysis failed: ' + (data.error || 'Unknown error');
+                    summaryEl.textContent = 'Error computing analysis.';
+                }
+            } catch(e) {
+                fallback.textContent = 'Network error fetching analysis.';
+                summaryEl.textContent = 'Error computing analysis.';
+            }
         }
 
         function closeModal() {
             document.getElementById('changeModal').classList.remove('open');
+        }
+
+        // ── Change Analysis Page ─────────────────────────────────────────
+        function toggleCAFalseAlarm() {
+            const el = document.getElementById('ca-all-confounders');
+            const isHidden = el.style.display === 'none' || el.style.display === '';
+            el.style.display = isHidden ? 'flex' : 'none';
+        }
+
+        async function runChangeAnalysis() {
+            const pairId = document.getElementById('pairSelect').value;
+            if (!pairId) {
+                alert('Please select a temporal pair first.');
+                return;
+            }
+
+            // Show workspace, hide empty state
+            document.getElementById('ca-empty').style.display = 'none';
+            document.getElementById('ca-workspace').style.display = 'block';
+            document.getElementById('ca-loading').style.display = 'block';
+            document.getElementById('ca-results').style.display = 'none';
+
+            // Set BEFORE / AFTER images immediately
+            document.getElementById('ca-img-before').src = `/static/demo/before/${pairId}`;
+            document.getElementById('ca-img-after').src = `/static/demo/after/${pairId}`;
+
+            // Reset result fields
+            document.getElementById('ca-summary').textContent = 'Analyzing...';
+            document.getElementById('ca-analyst-summary').textContent = 'Generating summary...';
+            document.getElementById('ca-area').textContent = '—';
+            document.getElementById('ca-regions').textContent = '—';
+            document.getElementById('ca-status').textContent = '—';
+            document.getElementById('ca-confounders').innerHTML = '<li style="color:var(--text-muted)">Detecting...</li>';
+            document.getElementById('ca-img-overlay').src = '';
+            document.getElementById('ca-img-overlay').style.display = 'block';
+            document.getElementById('ca-overlay-fallback').style.display = 'none';
+
+            try {
+                const res = await fetch('/analyze?pair_id=' + encodeURIComponent(pairId));
+                const data = await res.json();
+
+                document.getElementById('ca-loading').style.display = 'none';
+                document.getElementById('ca-results').style.display = 'block';
+
+                if (data.status === 'ok') {
+                    const r = data.result;
+
+                    document.getElementById('ca-summary').textContent = r.summary;
+                    document.getElementById('ca-analyst-summary').textContent = r.summary;
+                    document.getElementById('ca-area').textContent = r.changed_area_percent + '%';
+                    document.getElementById('ca-regions').textContent = r.num_regions;
+
+                    const statusEl = document.getElementById('ca-status');
+                    statusEl.textContent = r.review_status;
+                    statusEl.style.color = r.review_status === 'NO SIGNIFICANT CHANGE'
+                        ? 'var(--status-success)'
+                        : r.review_status === 'POSSIBLE CHANGE'
+                            ? 'var(--status-warning)'
+                            : 'var(--status-danger)';
+
+                    const confEl = document.getElementById('ca-confounders');
+                    if (r.confounders && r.confounders.length > 0) {
+                        confEl.innerHTML = r.confounders.map(c =>
+                            `<li style="color:var(--status-warning); font-size:0.85rem;">• ${c}</li>`
+                        ).join('');
+                    } else {
+                        confEl.innerHTML = '<li style="color:var(--text-muted); font-size:0.85rem;">None detected by heuristics</li>';
+                    }
+
+                    if (r.overlay_url) {
+                        const img = document.getElementById('ca-img-overlay');
+                        img.src = r.overlay_url + '?t=' + Date.now(); // cache bust
+                        img.onerror = function() {
+                            this.style.display = 'none';
+                            document.getElementById('ca-overlay-fallback').style.display = 'block';
+                        };
+                    }
+                } else {
+                    document.getElementById('ca-summary').textContent = 'Analysis failed: ' + (data.error || 'Unknown error');
+                    document.getElementById('ca-analyst-summary').textContent = 'Analysis could not be completed.';
+                }
+            } catch(e) {
+                document.getElementById('ca-loading').style.display = 'none';
+                document.getElementById('ca-results').style.display = 'block';
+                document.getElementById('ca-summary').textContent = 'Error: could not reach the local server.';
+                document.getElementById('ca-analyst-summary').textContent = 'Ensure the FastAPI server is running.';
+            }
+        }
+
+        // Allow search page "VIEW CHANGE" to pre-select and navigate here
+        function openAnalysisPage(pairId) {
+            nav('change');
+            document.getElementById('pairSelect').value = pairId;
+            runChangeAnalysis();
         }
 
         // Init

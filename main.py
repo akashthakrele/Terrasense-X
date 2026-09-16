@@ -20,6 +20,7 @@ app.include_router(router)
 
 # Serve static assets
 app.mount("/static/demo", StaticFiles(directory=os.path.join(cfg.DATA_DIR, "semantic_demo")), name="demo")
+app.mount("/static/ssl4eo", StaticFiles(directory=cfg.SSL4EO_DIR), name="ssl4eo")
 app.mount("/static", StaticFiles(directory=cfg.FRONTEND_DIR), name="static")
 app.mount("/data", StaticFiles(directory=cfg.DATA_DIR), name="data")
 app.mount("/outputs", StaticFiles(directory=cfg.OUTPUTS_DIR), name="outputs")
