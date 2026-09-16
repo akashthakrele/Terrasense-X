@@ -1,0 +1,20 @@
+# Terrasense-X
+__pycache__/
+*.pyc
+*.pyo
+venv/
+.venv/
+env/
+models/
+data/
+static_index/
+outputs/
+*.egg-info/
+.DS_Store
+
+# Large files / Models
+*.pt
+*.pth
+*.ckpt
+*.bin
+*.onnx

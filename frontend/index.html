@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terrasense-X</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0a0e17; color: #e0e6ed; min-height: 100vh; }
+        .container { max-width: 800px; margin: 0 auto; padding: 2rem; }
+        h1 { text-align: center; font-size: 2rem; background: linear-gradient(135deg, #00d4ff, #7b2dff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0.5rem; }
+        .subtitle { text-align: center; color: #6b7b8d; margin-bottom: 2rem; }
+        .search-box { display: flex; gap: 0.5rem; margin-bottom: 2rem; }
+        .search-box input { flex: 1; padding: 0.8rem 1.2rem; border: 1px solid #1e2a3a; border-radius: 8px; background: #111827; color: #e0e6ed; font-size: 1rem; outline: none; }
+        .search-box input:focus { border-color: #00d4ff; }
+        .search-box button { padding: 0.8rem 1.5rem; border: none; border-radius: 8px; background: linear-gradient(135deg, #00d4ff, #7b2dff); color: #fff; font-size: 1rem; cursor: pointer; font-weight: 600; }
+        #results { margin-top: 1rem; }
+        .result { background: #111827; border: 1px solid #1e2a3a; border-radius: 8px; padding: 1rem; margin-bottom: 0.5rem; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Terrasense-X</h1>
+        <p class="subtitle">Satellite Image Semantic Search</p>
+        <div class="search-box">
+            <input id="query" type="text" placeholder="Describe what you're looking for..." />
+            <button onclick="doSearch()">Search</button>
+        </div>
+        <div id="results"></div>
+    </div>
+    <script>
+        async function doSearch() {
+            const q = document.getElementById('query').value.trim();
+            if (!q) return;
+            const res = await fetch('/search?q=' + encodeURIComponent(q));
+            const data = await res.json();
+            document.getElementById('results').innerHTML = data.map(r =>
+                '<div class="result"><b>' + r.path + '</b> — score: ' + r.score + '</div>'
+            ).join('');
+        }
+        document.getElementById('query').addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
+    </script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+open_clip_torch
+faiss-cpu
+pillow
+numpy
+opencv-python
