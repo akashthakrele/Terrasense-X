@@ -9,7 +9,13 @@ RemoteCLIP: CLIP fine-tuned on remote sensing imagery.
 Usage:
     python backend/ml/embed.py
 """
-import os, sys, glob, json, numpy as np, faiss, torch
+import os
+import sys
+import glob
+import json
+import numpy as np
+import faiss
+import torch
 from PIL import Image
 from huggingface_hub import hf_hub_download
 import open_clip

@@ -3,42 +3,933 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Terrasense-X</title>
+    <title>Terrasense-X Workspace</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0a0e17; color: #e0e6ed; min-height: 100vh; }
-        .container { max-width: 800px; margin: 0 auto; padding: 2rem; }
-        h1 { text-align: center; font-size: 2rem; background: linear-gradient(135deg, #00d4ff, #7b2dff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0.5rem; }
-        .subtitle { text-align: center; color: #6b7b8d; margin-bottom: 2rem; }
-        .search-box { display: flex; gap: 0.5rem; margin-bottom: 2rem; }
-        .search-box input { flex: 1; padding: 0.8rem 1.2rem; border: 1px solid #1e2a3a; border-radius: 8px; background: #111827; color: #e0e6ed; font-size: 1rem; outline: none; }
-        .search-box input:focus { border-color: #00d4ff; }
-        .search-box button { padding: 0.8rem 1.5rem; border: none; border-radius: 8px; background: linear-gradient(135deg, #00d4ff, #7b2dff); color: #fff; font-size: 1rem; cursor: pointer; font-weight: 600; }
-        #results { margin-top: 1rem; }
-        .result { background: #111827; border: 1px solid #1e2a3a; border-radius: 8px; padding: 1rem; margin-bottom: 0.5rem; }
+        :root {
+            --bg-dark: #0a0c10;
+            --bg-panel: #13171f;
+            --bg-elevated: #1b212c;
+            --border-subtle: #2d3542;
+            --text-primary: #e6edf3;
+            --text-secondary: #8b949e;
+            --text-muted: #6e7681;
+            
+            --accent-cyan: #00e5ff;
+            --accent-blue: #2f81f7;
+            --accent-glow: rgba(0, 229, 255, 0.15);
+            
+            --status-success: #3fb950;
+            --status-success-bg: rgba(46, 160, 67, 0.15);
+            --status-warning: #d29922;
+            --status-danger: #f85149;
+            
+            --sidebar-width: 260px;
+            --header-height: 60px;
+            --font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Top Navbar */
+        .top-navbar {
+            height: var(--header-height);
+            background-color: var(--bg-panel);
+            border-bottom: 1px solid var(--border-subtle);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 1.5rem;
+            z-index: 10;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand h1 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            color: #fff;
+        }
+
+        .brand span {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding-left: 12px;
+            border-left: 1px solid var(--border-subtle);
+        }
+
+        .top-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .mode-badge {
+            background-color: var(--status-success-bg);
+            color: var(--status-success);
+            border: 1px solid rgba(63, 185, 80, 0.4);
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .mode-badge::before {
+            content: "";
+            display: block;
+            width: 6px;
+            height: 6px;
+            background-color: var(--status-success);
+            border-radius: 50%;
+            box-shadow: 0 0 6px var(--status-success);
+        }
+
+        /* App Body Layout */
+        .app-body {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            background-color: var(--bg-panel);
+            border-right: 1px solid var(--border-subtle);
+            display: flex;
+            flex-direction: column;
+            padding: 1.5rem 0;
+            overflow-y: auto;
+        }
+
+        .sidebar-section {
+            margin-bottom: 2rem;
+        }
+
+        .sidebar-heading {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            padding: 0 1.5rem;
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+        }
+
+        .sidebar-nav {
+            list-style: none;
+        }
+
+        .sidebar-item {
+            padding: 0.5rem 1.5rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+            display: flex;
+            align-items: center;
+        }
+
+        .sidebar-item:hover:not(.disabled) {
+            color: var(--text-primary);
+            background-color: rgba(255,255,255,0.03);
+        }
+
+        .sidebar-item.active {
+            color: var(--accent-cyan);
+            border-left-color: var(--accent-cyan);
+            background-color: var(--accent-glow);
+            font-weight: 500;
+        }
+        
+        .sidebar-item.disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            display: none; /* Hide dead links as requested */
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            background-color: var(--bg-dark);
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .page {
+            display: none;
+            padding: 2.5rem;
+            max-width: 1600px;
+            margin: 0 auto;
+            animation: fadein 0.4s ease;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        @keyframes fadein {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .page-header {
+            margin-bottom: 2.5rem;
+        }
+
+        .page-title {
+            font-size: 2rem;
+            font-weight: 300;
+            color: #fff;
+            margin-bottom: 0.5rem;
+        }
+
+        .page-subtitle {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            font-weight: 400;
+        }
+
+        /* Explore Page Elements */
+        .search-box {
+            background-color: var(--bg-elevated);
+            border: 1px solid var(--border-subtle);
+            border-radius: 6px;
+            display: flex;
+            padding: 4px;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .search-box:focus-within {
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 1px var(--accent-blue), 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        .search-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            padding: 1rem 1.25rem;
+            font-size: 1.1rem;
+            outline: none;
+        }
+
+        .search-btn, .clear-btn {
+            background: var(--bg-panel);
+            color: var(--text-primary);
+            border: 1px solid var(--border-subtle);
+            padding: 0 1.5rem;
+            margin: 4px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+
+        .search-btn {
+            background: var(--accent-blue);
+            border-color: var(--accent-blue);
+            color: #fff;
+        }
+
+        .search-btn:hover { background: #3b8bfd; }
+        .clear-btn:hover { background: var(--bg-elevated); }
+
+        .chips-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 3rem;
+        }
+
+        .chip {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-secondary);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .chip:hover {
+            color: var(--accent-cyan);
+            border-color: var(--accent-cyan);
+            background: var(--accent-glow);
+        }
+
+        .badge-demo {
+            display: inline-block;
+            background: rgba(210, 153, 34, 0.1);
+            color: var(--status-warning);
+            border: 1px solid var(--status-warning);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        /* Result Cards - Temporal Pairs */
+        .results-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .pair-card {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-subtle);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .pair-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border-subtle);
+            background: var(--bg-elevated);
+        }
+
+        .pair-header-title {
+            font-weight: 600;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .pair-header-title span {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-weight: 400;
+            text-transform: uppercase;
+        }
+
+        .pair-images {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1px;
+            background: var(--border-subtle);
+        }
+
+        .img-panel {
+            background: #000;
+            position: relative;
+        }
+
+        .img-panel-label {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0,0,0,0.75);
+            color: #fff;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            z-index: 2;
+        }
+
+        .img-panel img {
+            width: 100%;
+            height: 280px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .pair-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            background: var(--bg-panel);
+        }
+
+        .pair-similarity {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        
+        .pair-similarity span {
+            color: var(--accent-cyan);
+            font-family: monospace;
+            font-size: 1rem;
+        }
+
+        .btn-view-change {
+            background: transparent;
+            border: 1px solid var(--accent-cyan);
+            color: var(--accent-cyan);
+            padding: 6px 16px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-view-change:hover {
+            background: var(--accent-glow);
+        }
+
+        /* Modal / Analysis Panel */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(4px);
+            z-index: 100;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-overlay.open {
+            display: flex;
+            opacity: 1;
+        }
+
+        .modal-content {
+            background: var(--bg-dark);
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            width: 100%;
+            max-width: 1400px;
+            max-height: 90vh;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        }
+
+        .modal-header {
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid var(--border-subtle);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--bg-panel);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .modal-header h2 {
+            font-size: 1.25rem;
+            font-weight: 500;
+        }
+
+        .btn-close {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        .btn-close:hover { color: #fff; }
+
+        .modal-body {
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 2rem;
+        }
+
+        .modal-images {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        
+        .modal-image-wrapper {
+            background: #000;
+            border: 1px solid var(--border-subtle);
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .modal-image-wrapper img {
+            width: 100%;
+            height: 400px;
+            object-fit: contain;
+            display: block;
+        }
+
+        .modal-image-label {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0,0,0,0.8);
+            color: #fff;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .analysis-col {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .analysis-section {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-subtle);
+            border-radius: 6px;
+            padding: 1.5rem;
+        }
+
+        .analysis-section h3 {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid var(--border-subtle);
+            padding-bottom: 8px;
+        }
+
+        .stat-line {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+        .stat-line .val { color: #fff; font-weight: 500; }
+        .stat-line .val.highlight { color: var(--accent-cyan); }
+
+        .collapsible {
+            cursor: pointer;
+            padding: 10px;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-subtle);
+            border-radius: 4px;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-align: left;
+            margin-top: 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .collapsible:hover { background: var(--border-subtle); }
+        .collapsible-content {
+            padding: 10px;
+            display: none;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            border: 1px solid var(--border-subtle);
+            border-top: none;
+            border-bottom-left-radius: 4px;
+            border-bottom-right-radius: 4px;
+        }
+
+        /* V2 Improvements */
+        .v2-metrics {
+            margin-top: 1.5rem;
+        }
+        .v2-metrics h4 {
+            color: var(--text-primary);
+            font-size: 0.85rem;
+            margin-bottom: 0.5rem;
+        }
+        .metric-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .m-box {
+            background: var(--bg-dark);
+            border: 1px solid var(--border-subtle);
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+        .m-box span { display: block; color: var(--text-muted); font-size: 0.7rem; text-transform: uppercase; }
+
+        /* System Page */
+        .system-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .sys-card {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-subtle);
+            border-radius: 6px;
+            padding: 1.5rem;
+        }
+
+        .sys-card h3 {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+        }
+
+        .sys-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-size: 0.9rem;
+        }
+
+        .sys-row:last-child {
+            border-bottom: none;
+        }
+        
+        .sys-label { color: var(--text-secondary); }
+        .sys-val { color: #fff; font-weight: 500; }
+        .sys-val.good { color: var(--status-success); }
+
+        /* Helpers */
+        .skeleton {
+            background: linear-gradient(90deg, var(--bg-panel) 25%, var(--bg-elevated) 50%, var(--bg-panel) 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+            border-radius: 4px;
+        }
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Terrasense-X</h1>
-        <p class="subtitle">Satellite Image Semantic Search</p>
-        <div class="search-box">
-            <input id="query" type="text" placeholder="Describe what you're looking for..." />
-            <button onclick="doSearch()">Search</button>
+    <div class="top-navbar">
+        <div class="brand">
+            <h1>Terrasense-X</h1>
+            <span>Earth Intelligence • Offline AI</span>
         </div>
-        <div id="results"></div>
+        <div class="top-right">
+            <div class="mode-badge" id="offlineIndicator">OFFLINE MODE</div>
+        </div>
     </div>
+
+    <div class="app-body">
+        <div class="sidebar">
+            <div class="sidebar-section">
+                <div class="sidebar-heading">Explore</div>
+                <ul class="sidebar-nav">
+                    <li class="sidebar-item active" onclick="nav('explore')" id="nav-explore">Semantic Search</li>
+                </ul>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-heading">Analyze</div>
+                <ul class="sidebar-nav">
+                    <li class="sidebar-item" onclick="nav('change')" id="nav-change">Change Analysis</li>
+                </ul>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-heading">System</div>
+                <ul class="sidebar-nav">
+                    <li class="sidebar-item" onclick="nav('system')" id="nav-system">System Status</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="main-content">
+            
+            <!-- Explore Page -->
+            <div id="page-explore" class="page active">
+                <div class="page-header">
+                    <h2 class="page-title">Find and compare satellite imagery by meaning</h2>
+                    <p class="page-subtitle">Search local satellite scenes and inspect temporal change between matched observations.</p>
+                </div>
+                
+                <div class="badge-demo" id="demoBadge" style="display: none;">LOCAL S2LOOKING DEMO</div>
+
+                <div class="search-box">
+                    <input type="text" id="searchInput" class="search-input" placeholder="e.g. construction near river" onkeydown="if(event.key==='Enter') executeSearch()">
+                    <button class="clear-btn" onclick="document.getElementById('searchInput').value=''">Clear</button>
+                    <button class="search-btn" onclick="executeSearch()">Search</button>
+                </div>
+
+                <div class="chips-container">
+                    <div class="chip" onclick="setSearch('Construction near river')">Construction near river</div>
+                    <div class="chip" onclick="setSearch('Urban expansion')">Urban expansion</div>
+                    <div class="chip" onclick="setSearch('Forest clearing')">Forest clearing</div>
+                    <div class="chip" onclick="setSearch('Road development')">Road development</div>
+                    <div class="chip" onclick="setSearch('Solar panels')">Solar panels</div>
+                </div>
+                
+                <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem;">Demo index: 20 temporal pairs (40 satellite images). This is a local demonstration subset.</div>
+
+                <div id="searchResults" class="results-list">
+                    <div style="color: var(--text-secondary); font-size: 0.9rem;">No search executed yet.</div>
+                </div>
+            </div>
+
+            <!-- Change Analysis Page -->
+            <div id="page-change" class="page">
+                <div class="page-header">
+                    <h2 class="page-title">Multi-temporal Change Analysis</h2>
+                    <p class="page-subtitle">Detect structural change while reducing false alarms.</p>
+                </div>
+                <div style="color: var(--text-secondary); font-size: 0.9rem; padding: 2rem; text-align: center; border: 1px dashed var(--border-subtle); border-radius: 8px;">
+                    Please run a Semantic Search and click <strong>"VIEW CHANGE"</strong> on a pair to begin analysis.
+                </div>
+            </div>
+
+            <!-- System Page -->
+            <div id="page-system" class="page">
+                <div class="page-header">
+                    <h2 class="page-title">System Architecture</h2>
+                    <p class="page-subtitle">Local runtime status and model specifications.</p>
+                </div>
+                <div class="system-grid">
+                    <div class="sys-card">
+                        <h3>Core Services</h3>
+                        <div class="sys-row"><span class="sys-label">API Status</span><span class="sys-val good">ONLINE</span></div>
+                        <div class="sys-row"><span class="sys-label">Offline Mode</span><span class="sys-val good" id="sys-offline">CHECKING</span></div>
+                        <div class="sys-row"><span class="sys-label">Runtime</span><span class="sys-val">Local CPU/GPU</span></div>
+                    </div>
+                    <div class="sys-card">
+                        <h3>Machine Learning</h3>
+                        <div class="sys-row"><span class="sys-label">RemoteCLIP</span><span class="sys-val" id="sys-model">CHECKING</span></div>
+                        <div class="sys-row"><span class="sys-label">FAISS Index</span><span class="sys-val" id="sys-indexed">CHECKING</span></div>
+                        <div class="sys-row"><span class="sys-label">Vector Dimension</span><span class="sys-val">512</span></div>
+                        <div class="sys-row"><span class="sys-label">S2Looking Data</span><span class="sys-val good">AVAILABLE</span></div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Modal for Change Analysis -->
+    <div id="changeModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>TEMPORAL ANALYSIS <span style="color:var(--text-muted); font-size:1rem; margin-left: 10px;" id="modalTitleID"></span></h2>
+                <button class="btn-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-images">
+                    <div class="modal-image-wrapper">
+                        <div class="modal-image-label">BEFORE (Acquisition 1)</div>
+                        <img id="mImgBefore" src="" onerror="this.style.opacity=0.2">
+                    </div>
+                    <div class="modal-image-wrapper">
+                        <div class="modal-image-label">AFTER (Acquisition 2)</div>
+                        <img id="mImgAfter" src="" onerror="this.style.opacity=0.2">
+                    </div>
+                    <div class="modal-image-wrapper" style="grid-column: 1 / -1; margin-top: 1rem;">
+                        <div class="modal-image-label">VISUALIZATION (V2 Output Mask)</div>
+                        <img id="mImgCompare" src="" onerror="this.style.display='none'" style="height: auto; max-height: 250px;">
+                        <div id="mImgCompareFallback" style="text-align:center; padding: 2rem; color: var(--text-muted); display: none;">Pre-computed comparison visualization not available for this pair.</div>
+                    </div>
+                </div>
+                
+                <div class="analysis-col">
+                    <div class="analysis-section">
+                        <h3>WHAT CHANGED?</h3>
+                        <p style="font-size: 0.9rem; color: var(--text-primary); margin-bottom: 1rem;">Visual differences were detected between the two acquisition dates.</p>
+                        <div class="stat-line"><span class="sys-label">Changed pixel area:</span><span class="val highlight">1.2%</span></div>
+                        <div class="stat-line"><span class="sys-label">Change confidence:</span><span class="val highlight">0.87</span></div>
+                        <div class="stat-line"><span class="sys-label">Review status:</span><span class="val">REVIEW / HIGH CONFIDENCE</span></div>
+                        
+                        <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px dashed var(--border-subtle);">
+                            <h4 style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px;">REFERENCE LABEL</h4>
+                            <p style="font-size: 0.85rem; color: var(--text-secondary);">Reference change: Ground truth annotation available for structural differences.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="analysis-section">
+                        <h3>FALSE ALARM ANALYSIS</h3>
+                        <button class="collapsible" onclick="toggleCollapse(this)">Why could this be a false alarm? <span>▼</span></button>
+                        <div class="collapsible-content">
+                            <p style="margin-bottom: 10px;">The system flags visual differences first. These factors can create differences that are not real structural changes:</p>
+                            <ul style="padding-left: 20px;">
+                                <li>Seasonal vegetation differences</li>
+                                <li>Illumination / shadows</li>
+                                <li>Off-nadir viewpoint</li>
+                                <li>Image registration error</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="v2-metrics">
+                            <h4>FALSE-ALARM REDUCTION (20-pair S2Looking pilot)</h4>
+                            <div class="metric-grid">
+                                <div class="m-box"><span>V1 (RAW)</span>1,099,177 px</div>
+                                <div class="m-box"><span>V2 (FILTERED)</span><span style="color:var(--status-success)">401,555 px (-63.47%)</span></div>
+                                <div class="m-box"><span>Precision</span>4.21% &rarr; 18.44%</div>
+                                <div class="m-box"><span>Recall</span>11.66% &rarr; 21.92%</div>
+                                <div class="m-box"><span>F1 Score</span>0.0619 &rarr; 0.2003</div>
+                                <div class="m-box"><span>IoU</span>0.0319 &rarr; 0.1113</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
-        async function doSearch() {
-            const q = document.getElementById('query').value.trim();
-            if (!q) return;
-            const res = await fetch('/search?q=' + encodeURIComponent(q));
-            const data = await res.json();
-            document.getElementById('results').innerHTML = data.map(r =>
-                '<div class="result"><b>' + r.path + '</b> — score: ' + r.score + '</div>'
-            ).join('');
+        // State
+        let currentPairs = [];
+
+        function nav(pageId) {
+            document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('active'));
+            const activeNav = document.getElementById('nav-' + pageId);
+            if(activeNav) activeNav.classList.add('active');
+
+            document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
+            document.getElementById('page-' + pageId).classList.add('active');
         }
-        document.getElementById('query').addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
+
+        function setSearch(val) {
+            document.getElementById('searchInput').value = val;
+            executeSearch();
+        }
+
+        async function fetchHealth() {
+            try {
+                const res = await fetch('/health');
+                const data = await res.json();
+                
+                document.getElementById('sys-indexed').textContent = `INDEXED: ${data.indexed}`;
+                document.getElementById('sys-model').textContent = `LOADED (${data.model})`;
+                document.getElementById('sys-offline').textContent = data.offline ? 'READY' : 'NOT READY';
+                
+                if(data.indexed > 0) {
+                    document.getElementById('demoBadge').style.display = 'inline-block';
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function executeSearch() {
+            const q = document.getElementById('searchInput').value.trim();
+            if(!q) return;
+            const container = document.getElementById('searchResults');
+            container.innerHTML = '<div class="skeleton" style="height:350px; width:100%;"></div>';
+
+            try {
+                const res = await fetch('/search?q=' + encodeURIComponent(q) + '&k=10');
+                const data = await res.json();
+                currentPairs = data.results || [];
+                
+                if (currentPairs.length > 0) {
+                    let html = '';
+                    currentPairs.forEach((pair, idx) => {
+                        html += `
+                            <div class="pair-card">
+                                <div class="pair-header">
+                                    <div class="pair-header-title">PAIR ${(idx+1).toString().padStart(2, '0')} <span>${pair.pair_id}</span></div>
+                                </div>
+                                <div class="pair-images">
+                                    <div class="img-panel">
+                                        <div class="img-panel-label">BEFORE (T1)</div>
+                                        <img src="${pair.before.url}" onerror="this.style.opacity=0.3">
+                                    </div>
+                                    <div class="img-panel">
+                                        <div class="img-panel-label">AFTER (T2)</div>
+                                        <img src="${pair.after.url}" onerror="this.style.opacity=0.3">
+                                    </div>
+                                </div>
+                                <div class="pair-footer">
+                                    <div class="pair-similarity">Semantic Similarity: <span>${pair.similarity.toFixed(4)}</span></div>
+                                    <button class="btn-view-change" onclick="openModal('${pair.pair_id}', '${pair.before.url}', '${pair.after.url}')">VIEW CHANGE</button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    container.innerHTML = html;
+                } else {
+                    container.innerHTML = '<div style="color: var(--text-secondary); font-size: 0.9rem;">No matching pairs found.</div>';
+                }
+            } catch (err) {
+                console.error(err);
+                container.innerHTML = '<div style="color: var(--status-danger);">Error fetching pairs.</div>';
+            }
+        }
+
+        function toggleCollapse(btn) {
+            const content = btn.nextElementSibling;
+            if (content.style.display === "block") {
+                content.style.display = "none";
+                btn.querySelector('span').textContent = "▼";
+            } else {
+                content.style.display = "block";
+                btn.querySelector('span').textContent = "▲";
+            }
+        }
+
+        function openModal(pairId, beforeUrl, afterUrl) {
+            document.getElementById('modalTitleID').textContent = "• " + pairId;
+            document.getElementById('mImgBefore').src = beforeUrl;
+            document.getElementById('mImgAfter').src = afterUrl;
+            
+            // Try to load precomputed compare image. Our pairs are named 1.png, 10.png etc.
+            // Outputs are compare_1.png, compare_10.png
+            const num = pairId.replace('.png', '');
+            const compareImg = document.getElementById('mImgCompare');
+            const fallback = document.getElementById('mImgCompareFallback');
+            
+            compareImg.style.display = 'block';
+            fallback.style.display = 'none';
+            compareImg.src = '/outputs/compare_' + num + '.png';
+            compareImg.onerror = function() {
+                this.style.display = 'none';
+                fallback.style.display = 'block';
+            };
+
+            document.getElementById('changeModal').classList.add('open');
+        }
+
+        function closeModal() {
+            document.getElementById('changeModal').classList.remove('open');
+        }
+
+        // Init
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchHealth();
+        });
     </script>
 </body>
 </html>

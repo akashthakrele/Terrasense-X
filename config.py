@@ -1,9 +1,10 @@
 import os
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DATA_DIR = "data"
-BEFORE_DIR = os.path.join(DATA_DIR, "before")
-AFTER_DIR = os.path.join(DATA_DIR, "after")
+DATA_DIR = os.path.join(BASE_DIR, "data")
+BEFORE_DIR = os.path.join(DATA_DIR, "semantic_demo", "before")
+AFTER_DIR = os.path.join(DATA_DIR, "semantic_demo", "after")
+
 MODEL_NAME = "ViT-B-32"
 REMOTECLIP_REPO = "chendelong/RemoteCLIP"
 REMOTECLIP_CKPT = "RemoteCLIP-ViT-B-32.pt"
