@@ -17,18 +17,9 @@ _names_s2looking = None
 _index_ssl4eo = None
 _names_ssl4eo = None
 
-# S2Looking large index cache
+# S2Looking large index cache (paths come from cfg)
 _index_s2looking_large = None
 _names_s2looking_large = None
-
-S2LOOKING_LARGE_FAISS = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
-    "static_index", "s2looking_large.faiss"
-)
-S2LOOKING_LARGE_JSON = os.path.join(
-    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
-    "static_index", "s2looking_large.json"
-)
 
 
 def _load_resources(dataset='ssl4eo'):
@@ -57,12 +48,11 @@ def _load_resources(dataset='ssl4eo'):
         return _index_ssl4eo, _names_ssl4eo
 
     elif dataset == 's2looking_large':
-        if _index_s2looking_large is None and os.path.exists(S2LOOKING_LARGE_FAISS):
-            _index_s2looking_large = faiss.read_index(S2LOOKING_LARGE_FAISS)
-            print("[search] Loaded s2looking_large FAISS index:"
-                  f" {_index_s2looking_large.ntotal} vectors")
-        if _names_s2looking_large is None and os.path.exists(S2LOOKING_LARGE_JSON):
-            with open(S2LOOKING_LARGE_JSON, "r") as f:
+        if _index_s2looking_large is None and os.path.exists(cfg.S2LOOKING_LARGE_FAISS):
+            _index_s2looking_large = faiss.read_index(cfg.S2LOOKING_LARGE_FAISS)
+            print(f"[search] Loaded s2looking_large FAISS index: {_index_s2looking_large.ntotal} vectors")
+        if _names_s2looking_large is None and os.path.exists(cfg.S2LOOKING_LARGE_JSON):
+            with open(cfg.S2LOOKING_LARGE_JSON, "r") as f:
                 _names_s2looking_large = json.load(f)
         return _index_s2looking_large, _names_s2looking_large
 

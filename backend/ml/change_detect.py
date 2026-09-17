@@ -107,18 +107,42 @@ def detect_change(img1_path, img2_path, pair_id):
     closed = opened.filter(ImageFilter.MaxFilter(MORPH_CLOSE_KERNEL)).filter(ImageFilter.MinFilter(MORPH_CLOSE_KERNEL))
     closed_np = np.array(closed)
     
-    # 5. Remove small components
+    # 5. Remove small components and calculate heuristics
     labeled_array, num_features = label(closed_np > 127)
     clean_mask = np.zeros_like(closed_np)
     num_regions = 0
+    max_region_pct = 0.0
+    structural_evidence = False
+
+    from scipy.ndimage import find_objects
+    slices = find_objects(labeled_array)
+    total_pixels = img1.shape[0] * img1.shape[1]
+
     if num_features > 0:
         for i in range(1, num_features + 1):
-            if np.sum(labeled_array == i) >= MIN_COMPONENT_SIZE:
-                clean_mask[labeled_array == i] = 255
+            region_mask = (labeled_array == i)
+            area = np.sum(region_mask)
+            if area >= MIN_COMPONENT_SIZE:
+                clean_mask[region_mask] = 255
                 num_regions += 1
+                
+                pct = (area / total_pixels) * 100
+                if pct > max_region_pct:
+                    max_region_pct = pct
+                    
+                # Structural heuristic: rectangularity and compactness
+                if slices and (i-1) < len(slices) and slices[i-1] is not None:
+                    sl_y, sl_x = slices[i-1]
+                    h = sl_y.stop - sl_y.start
+                    w = sl_x.stop - sl_x.start
+                    bbox_area = h * w
+                    if bbox_area > 0:
+                        rectangularity = area / bbox_area
+                        # Typical buildings are reasonably compact rectangles
+                        if 0.4 < rectangularity < 0.95 and area > 150:
+                            structural_evidence = True
 
     changed_pixels = np.sum(clean_mask == 255)
-    total_pixels = img1.shape[0] * img1.shape[1]
     changed_area_percent = (changed_pixels / total_pixels) * 100
 
     # Save outputs
@@ -142,10 +166,13 @@ def detect_change(img1_path, img2_path, pair_id):
         "changed_pixel_area": int(changed_pixels),
         "changed_area_percent": round(changed_area_percent, 2),
         "detected_regions": num_regions,
+        "max_region_pct": round(max_region_pct, 2),
+        "structural_evidence": structural_evidence,
         "potential_confounders": confounders,
-        "analysis_method": "Deterministic phase correlation and morphological V2",
+        "analysis_method": "V2 — Alignment + Appearance Normalization",
         "mask_url": f"/outputs/{mask_name}",
-        "overlay_url": f"/outputs/{overlay_name}"
+        "overlay_url": f"/outputs/{overlay_name}",
+        "alignment_status": "Successful"
     }
     
     # Generate explanation
@@ -156,24 +183,33 @@ def detect_change(img1_path, img2_path, pair_id):
 
 def generate_explanation(result):
     """
-    Deterministic rule-based explanation generator.
+    Deterministic rule-based explanation generator using structural heuristics.
     """
     area = result["changed_area_percent"]
-    confounders = result["potential_confounders"]
+    confounders = result.get("potential_confounders", [])
+    num_regions = result.get("detected_regions", 0)
+    structural_evidence = result.get("structural_evidence", False)
     
-    if area < 0.1:
-        status = "NO SIGNIFICANT PERSISTENT CHANGE"
-        summary = "No significant change detected after alignment and filtering."
-    elif area < 1.0:
-        status = "POSSIBLE CHANGE"
-        summary = f"Minor potential change detected. Approximately {area}% of the area differs."
+    if num_regions == 0 or area < 0.05:
+        status = "NO SIGNIFICANT CHANGE"
+        summary = "No significant change detected after alignment and false-alarm filtering."
+    elif structural_evidence and area >= 0.1:
+        status = "POSSIBLE NEW STRUCTURE"
+        summary = "Structural-looking change detected. A new compact region appears in the later image, but the available evidence is insufficient to confidently classify it as a confirmed building without an explicit classifier."
+    elif area >= 0.5:
+        if "Vegetation / seasonal variation" in confounders:
+            status = "VEGETATION / SURFACE CHANGE"
+            summary = "Detected change is concentrated in vegetation-like regions. No clear structural change was identified."
+        else:
+            status = "REVIEW REQUIRED"
+            summary = "Change detected, but the available evidence is insufficient to classify the change type. The detected region lacks strong structural properties."
     else:
-        status = "REVIEW REQUIRED"
-        summary = f"Potential change detected between the two observations. Approximately {area}% of the area differs."
-        
-    if confounders and area >= 0.1:
+        status = "MINOR DETECTED CHANGE"
+        summary = "Detected changes are small and spatially fragmented. They may represent illumination, vegetation, or registration artifacts rather than a persistent structural change."
+
+    if confounders and area >= 0.1 and status != "VEGETATION / SURFACE CHANGE":
         confounder_str = ", ".join(confounders).lower()
-        summary += f" Variations in {confounder_str} are present, so human review is recommended."
+        summary += f" (Note: Variations in {confounder_str} are present, so human review is recommended)."
         
     return {
         "summary": summary,
