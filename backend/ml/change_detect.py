@@ -65,8 +65,8 @@ def generate_overlay(after_img, binary_mask, out_path):
 
 def detect_change(img1_path, img2_path, pair_id):
     """
-    Computes change mask using V2 baseline.
-    Calculates confounders and deterministically returns the analysis payload.
+    Production change detector based on rigorous benchmark evaluation.
+    Configuration: aligned_rgb_norm, threshold=35, min_area=50
     """
     img1_pil = Image.open(img1_path).convert('RGB')
     img2_pil = Image.open(img2_path).convert('RGB')
@@ -74,14 +74,10 @@ def detect_change(img1_path, img2_path, pair_id):
     img1 = np.array(img1_pil)
     img2 = np.array(img2_pil)
     
-    # Confounders check BEFORE alignment/norm
     mean1 = img1.mean()
     mean2 = img2.mean()
     mean_diff = abs(mean1 - mean2)
-    
-    g_mean1 = img1[:,:,1].mean()
-    g_mean2 = img2[:,:,1].mean()
-    g_diff = abs(g_mean1 - g_mean2)
+    g_diff = abs(img1[:,:,1].mean() - img2[:,:,1].mean())
 
     # 1. Alignment
     try:
@@ -96,64 +92,50 @@ def detect_change(img1_path, img2_path, pair_id):
     # 2. Normalization
     norm_img2 = color_match(aligned_img2, img1)
 
-    # 3. Difference
+    # 3. Difference (RGB Norm)
     diff = np.abs(img1.astype(np.int16) - norm_img2.astype(np.int16)).astype(np.uint8)
     gray_diff = np.mean(diff, axis=2)
 
     # 4. Threshold & Morphology
-    thresh = (gray_diff > DIFF_THRESH).astype(np.uint8) * 255
+    # Benchmark winning threshold: 35
+    thresh = (gray_diff > 35).astype(np.uint8) * 255
     thresh_pil = Image.fromarray(thresh)
-    opened = thresh_pil.filter(ImageFilter.MinFilter(MORPH_OPEN_KERNEL)).filter(ImageFilter.MaxFilter(MORPH_OPEN_KERNEL))
-    closed = opened.filter(ImageFilter.MaxFilter(MORPH_CLOSE_KERNEL)).filter(ImageFilter.MinFilter(MORPH_CLOSE_KERNEL))
+    opened = thresh_pil.filter(ImageFilter.MinFilter(3)).filter(ImageFilter.MaxFilter(3))
+    closed = opened.filter(ImageFilter.MaxFilter(3)).filter(ImageFilter.MinFilter(3))
     closed_np = np.array(closed)
     
-    # 5. Remove small components and calculate heuristics
+    # 5. Connected Components (Min Area: 50)
     labeled_array, num_features = label(closed_np > 127)
-    clean_mask = np.zeros_like(closed_np)
+    final_mask = np.zeros_like(closed_np)
+    
     num_regions = 0
     max_region_pct = 0.0
-    structural_evidence = False
-
-    from scipy.ndimage import find_objects
-    slices = find_objects(labeled_array)
     total_pixels = img1.shape[0] * img1.shape[1]
 
     if num_features > 0:
         for i in range(1, num_features + 1):
             region_mask = (labeled_array == i)
             area = np.sum(region_mask)
-            if area >= MIN_COMPONENT_SIZE:
-                clean_mask[region_mask] = 255
+            
+            if area >= 50:
+                final_mask[region_mask] = 255
                 num_regions += 1
                 
                 pct = (area / total_pixels) * 100
                 if pct > max_region_pct:
                     max_region_pct = pct
-                    
-                # Structural heuristic: rectangularity and compactness
-                if slices and (i-1) < len(slices) and slices[i-1] is not None:
-                    sl_y, sl_x = slices[i-1]
-                    h = sl_y.stop - sl_y.start
-                    w = sl_x.stop - sl_x.start
-                    bbox_area = h * w
-                    if bbox_area > 0:
-                        rectangularity = area / bbox_area
-                        # Typical buildings are reasonably compact rectangles
-                        if 0.4 < rectangularity < 0.95 and area > 150:
-                            structural_evidence = True
 
-    changed_pixels = np.sum(clean_mask == 255)
+    changed_pixels = np.sum(final_mask == 255)
     changed_area_percent = (changed_pixels / total_pixels) * 100
 
     # Save outputs
     os.makedirs(cfg.OUTPUTS_DIR, exist_ok=True)
-    mask_name = f"mask_{pair_id}"
-    overlay_name = f"overlay_{pair_id}"
+    mask_name = f"mask_benchmark_{pair_id}.png"
+    overlay_name = f"overlay_benchmark_{pair_id}.png"
     
-    Image.fromarray(clean_mask).save(os.path.join(cfg.OUTPUTS_DIR, mask_name))
-    generate_overlay(img2, clean_mask, os.path.join(cfg.OUTPUTS_DIR, overlay_name))
+    Image.fromarray(final_mask).save(os.path.join(cfg.OUTPUTS_DIR, mask_name))
+    generate_overlay(img2, final_mask, os.path.join(cfg.OUTPUTS_DIR, overlay_name))
 
-    # Evaluate confounders
     confounders = []
     if mean_diff > 15:
         confounders.append("Illumination / shadows")
@@ -167,15 +149,13 @@ def detect_change(img1_path, img2_path, pair_id):
         "changed_area_percent": round(changed_area_percent, 2),
         "detected_regions": num_regions,
         "max_region_pct": round(max_region_pct, 2),
-        "structural_evidence": structural_evidence,
         "potential_confounders": confounders,
-        "analysis_method": "V2 — Alignment + Appearance Normalization",
+        "analysis_method": "aligned_rgb_norm (t=35, area=50)",
         "mask_url": f"/outputs/{mask_name}",
         "overlay_url": f"/outputs/{overlay_name}",
-        "alignment_status": "Successful"
+        "alignment_status": "Successful" if shift == (0,0) else "Aligned"
     }
     
-    # Generate explanation
     analysis = generate_explanation(result)
     result.update(analysis)
     
@@ -185,31 +165,14 @@ def generate_explanation(result):
     """
     Deterministic rule-based explanation generator using structural heuristics.
     """
-    area = result["changed_area_percent"]
-    confounders = result.get("potential_confounders", [])
     num_regions = result.get("detected_regions", 0)
-    structural_evidence = result.get("structural_evidence", False)
     
-    if num_regions == 0 or area < 0.05:
-        status = "NO SIGNIFICANT CHANGE"
-        summary = "No significant change detected after alignment and false-alarm filtering."
-    elif structural_evidence and area >= 0.1:
-        status = "POSSIBLE NEW STRUCTURE"
-        summary = "Structural-looking change detected. A new compact region appears in the later image, but the available evidence is insufficient to confidently classify it as a confirmed building without an explicit classifier."
-    elif area >= 0.5:
-        if "Vegetation / seasonal variation" in confounders:
-            status = "VEGETATION / SURFACE CHANGE"
-            summary = "Detected change is concentrated in vegetation-like regions. No clear structural change was identified."
-        else:
-            status = "REVIEW REQUIRED"
-            summary = "Change detected, but the available evidence is insufficient to classify the change type. The detected region lacks strong structural properties."
+    if num_regions == 0:
+        status = "NO CHANGE DETECTED"
+        summary = "No detector-positive regions found."
     else:
-        status = "MINOR DETECTED CHANGE"
-        summary = "Detected changes are small and spatially fragmented. They may represent illumination, vegetation, or registration artifacts rather than a persistent structural change."
-
-    if confounders and area >= 0.1 and status != "VEGETATION / SURFACE CHANGE":
-        confounder_str = ", ".join(confounders).lower()
-        summary += f" (Note: Variations in {confounder_str} are present, so human review is recommended)."
+        status = "CHANGE DETECTED"
+        summary = f"{num_regions} change region(s) identified."
         
     return {
         "summary": summary,

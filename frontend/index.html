@@ -3,1596 +3,997 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Terrasense-X — Geospatial Intelligence Workspace</title>
-    <meta name="description" content="Offline geospatial intelligence workspace for satellite imagery analysis and temporal change detection.">
+    <title>Terrasense-X GIS Workstation</title>
+    <meta name="description" content="Offline geospatial software workstation for satellite imagery analysis.">
     <style>
         :root {
-            --bg-base:       #08090d;
-            --bg-panel:      #10131a;
-            --bg-elevated:   #171c26;
-            --bg-input:      #1d2333;
-            --border:        #252d3d;
-            --border-bright: #36415a;
+            --bg-base:       #F5F6F7;
+            --bg-panel:      #FFFFFF;
+            --bg-input:      #F5F6F7;
+            --border:        #D5D9DE;
+            --border-bright: #A0AAB2;
+            
+            --text-primary:  #20262D;
+            --text-secondary:#68737D;
+            --text-muted:    #A0AAB2;
+            
+            --cyan:          #3B82F6;
+            --cyan-dim:      #EBF4FF;
+            
+            --green:         #10B981;
+            --green-dim:     #ECFDF5;
+            
+            --amber:         #F59E0B;
+            --amber-dim:     #FFFBEB;
+            
+            --red:           #EF4444;
+            --red-dim:       #FEF2F2;
 
-            --text-primary:  #d0d8e8;
-            --text-secondary:#8a95a8;
-            --text-muted:    #505a6e;
-
-            --cyan:    #00d4e8;
-            --cyan-dim:rgba(0,212,232,.12);
-            --blue:    #3b82f6;
-            --blue-dim:rgba(59,130,246,.12);
-            --green:   #22c55e;
-            --green-dim:rgba(34,197,94,.12);
-            --amber:   #f59e0b;
-            --amber-dim:rgba(245,158,11,.12);
-            --red:     #ef4444;
-            --red-dim: rgba(239,68,68,.12);
-
-            --sidebar-w: 220px;
-            --topbar-h:  48px;
-            --mono: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+            --topbar-h:      40px;
+            --timeline-h:    48px;
+            --left-w:        320px;
+            --right-w:       320px;
+            
+            --sys-font: 'Segoe UI', Arial, sans-serif;
         }
 
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
         body {
-            font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+            font-family: var(--sys-font);
             background: var(--bg-base);
             color: var(--text-primary);
             height: 100vh;
             display: flex;
+            flex-direction: column;
             overflow: hidden;
-            font-size: 14px;
+            font-size: 13px;
+            line-height: 1.5;
         }
 
-        /* ── Sidebar ─────────────────────────────────────────────────────── */
-        .sidebar {
-            width: var(--sidebar-w);
+        /* ── Top Bar ────────────────────────────────────────────────────── */
+        .topbar {
+            height: var(--topbar-h);
+            background: var(--bg-panel);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            justify-content: space-between;
+            flex-shrink: 0;
+            z-index: 50;
+        }
+        .tb-left { display: flex; align-items: center; gap: 24px; }
+        .tb-brand { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+        .tb-search {
+            display: flex;
+            align-items: center;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: 2px;
+            padding: 2px 8px;
+            width: 300px;
+        }
+        .tb-search input {
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            font-size: 13px;
+            padding: 4px;
+            width: 100%;
+            outline: none;
+        }
+        .tb-right { display: flex; align-items: center; gap: 16px; font-size: 12px; color: var(--text-secondary); }
+
+        /* ── App Body ────────────────────────────────────────────────────── */
+        .app-body {
+            flex: 1;
+            display: flex;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* ── Left Catalog ────────────────────────────────────────────────── */
+        .left-panel {
+            width: var(--left-w);
             background: var(--bg-panel);
             border-right: 1px solid var(--border);
             display: flex;
             flex-direction: column;
-            flex-shrink: 0;
             z-index: 20;
         }
-
-        .sidebar-logo {
-            padding: 16px 18px 14px;
-            border-bottom: 1px solid var(--border);
-        }
-        .sidebar-logo-name {
-            font-size: 13px;
-            font-weight: 700;
-            letter-spacing: .08em;
-            color: var(--cyan);
-        }
-        .sidebar-logo-sub {
-            font-size: 10px;
-            color: var(--text-muted);
-            letter-spacing: .06em;
-            margin-top: 2px;
-        }
-
-        .sidebar-nav {
-            flex: 1;
-            padding: 12px 0;
-        }
-        .sidebar-section-label {
-            font-size: 9px;
-            letter-spacing: .12em;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            padding: 10px 18px 4px;
-        }
-        .nav-item {
-            display: flex;
-            align-items: center;
-            gap: 9px;
-            padding: 7px 18px;
-            cursor: pointer;
-            border-radius: 0;
-            font-size: 12.5px;
-            color: var(--text-secondary);
-            transition: background .15s, color .15s;
-            user-select: none;
-            border-left: 2px solid transparent;
-        }
-        .nav-item:hover { background: var(--bg-elevated); color: var(--text-primary); }
-        .nav-item.active {
-            background: var(--cyan-dim);
-            color: var(--cyan);
-            border-left-color: var(--cyan);
-        }
-        .nav-icon { width: 14px; height: 14px; opacity: .7; flex-shrink: 0; }
-        .nav-item.active .nav-icon { opacity: 1; }
-
-        .sidebar-status {
-            padding: 14px 18px;
-            border-top: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-        .status-row {
-            display: flex;
-            align-items: center;
-            gap: 7px;
-            font-size: 10.5px;
-            color: var(--text-muted);
-        }
-        .status-dot {
-            width: 6px; height: 6px;
-            border-radius: 50%;
-            flex-shrink: 0;
-        }
-        .status-dot.green { background: var(--green); box-shadow: 0 0 5px var(--green); }
-        .status-dot.amber { background: var(--amber); }
-        .status-dot.dim   { background: var(--text-muted); }
-        .status-val { margin-left: auto; font-family: var(--mono); font-size: 10px; color: var(--text-secondary); }
-
-        /* ── Main area ───────────────────────────────────────────────────── */
-        .main {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            position: relative;
-        }
-
-        /* Globe canvas — sits behind content */
-        #globeCanvas {
-            position: absolute;
-            top: 0; right: 0;
-            width: 100%; height: 100%;
-            opacity: .18;
-            pointer-events: none;
-            z-index: 0;
-        }
-
-        /* Top bar */
-        .topbar {
-            height: var(--topbar-h);
-            background: rgba(16,19,26,.85);
-            backdrop-filter: blur(8px);
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            padding: 0 20px;
-            gap: 12px;
-            z-index: 10;
-            flex-shrink: 0;
-        }
-        .topbar-title {
-            font-size: 12px;
-            font-weight: 600;
-            letter-spacing: .06em;
-            color: var(--text-primary);
-            flex: 1;
-        }
-        .topbar-badge {
-            font-size: 10px;
-            font-weight: 700;
-            letter-spacing: .09em;
-            padding: 3px 9px;
-            border-radius: 3px;
-        }
-        .badge-offline {
-            background: var(--green-dim);
-            color: var(--green);
-            border: 1px solid rgba(34,197,94,.3);
-        }
-        .badge-dataset {
-            background: var(--blue-dim);
-            color: var(--blue);
-            border: 1px solid rgba(59,130,246,.25);
-            font-size: 9.5px;
-        }
-
-        /* Content pages */
-        .page-area {
-            flex: 1;
-            overflow: hidden;
-            position: relative;
-            z-index: 5;
-        }
-        .page { display: none; height: 100%; overflow-y: auto; padding: 22px 24px 32px; }
-        .page.active { display: block; }
-
-        /* Page header */
-        .pg-header { margin-bottom: 18px; }
-        .pg-title {
-            font-size: 15px;
-            font-weight: 700;
-            letter-spacing: .04em;
-            color: var(--text-primary);
-        }
-        .pg-sub {
-            font-size: 11.5px;
-            color: var(--text-muted);
-            margin-top: 3px;
-        }
-
-        /* ── Search page ─────────────────────────────────────────────────── */
-        .search-bar {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 10px;
-        }
-        .search-input {
-            flex: 1;
-            background: var(--bg-input);
-            border: 1px solid var(--border);
-            color: var(--text-primary);
-            padding: 9px 14px;
-            border-radius: 5px;
-            font-size: 13px;
-            outline: none;
-            transition: border-color .2s;
-            font-family: inherit;
-        }
-        .search-input:focus { border-color: var(--cyan); }
-        .search-input::placeholder { color: var(--text-muted); }
-        .btn {
-            padding: 8px 16px;
-            border-radius: 5px;
-            border: 1px solid var(--border);
-            background: var(--bg-elevated);
-            color: var(--text-secondary);
-            font-size: 12px;
-            font-weight: 600;
-            letter-spacing: .04em;
-            cursor: pointer;
-            transition: all .15s;
-        }
-        .btn:hover { border-color: var(--cyan); color: var(--cyan); }
-        .btn-primary {
-            background: var(--cyan-dim);
-            color: var(--cyan);
-            border-color: rgba(0,212,232,.35);
-        }
-        .btn-primary:hover { background: rgba(0,212,232,.2); }
-
-        .chips {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-            margin-bottom: 14px;
-        }
-        .chip {
-            background: var(--bg-elevated);
-            border: 1px solid var(--border);
-            color: var(--text-secondary);
-            padding: 4px 11px;
-            border-radius: 20px;
-            font-size: 11.5px;
-            cursor: pointer;
-            transition: all .15s;
-        }
-        .chip:hover { border-color: var(--cyan); color: var(--cyan); background: var(--cyan-dim); }
-
-        /* Dataset context banner */
-        .dataset-banner {
-            background: var(--bg-elevated);
-            border: 1px solid var(--border);
-            border-left: 3px solid var(--blue);
-            border-radius: 5px;
-            padding: 9px 14px;
-            margin-bottom: 16px;
-            display: flex;
-            align-items: flex-start;
-            gap: 10px;
-        }
-        .dataset-banner-icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
-        .dataset-banner-text { flex: 1; }
-        .dataset-banner-title {
-            font-size: 10.5px;
-            font-weight: 700;
-            letter-spacing: .08em;
-            color: var(--blue);
-            margin-bottom: 2px;
-        }
-        .dataset-banner-note {
-            font-size: 11px;
-            color: var(--text-muted);
-            line-height: 1.5;
-        }
-
-        /* Results */
-        .results-header {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 12px;
-            padding-bottom: 8px;
-            border-bottom: 1px solid var(--border);
-        }
-        .results-header-label {
-            font-size: 10px;
-            font-weight: 700;
-            letter-spacing: .1em;
-            color: var(--text-muted);
-            flex: 1;
-        }
-        .results-meta {
-            font-size: 10px;
-            color: var(--text-muted);
-            font-family: var(--mono);
-        }
-        .results-closest-notice {
-            background: var(--amber-dim);
-            border: 1px solid rgba(245,158,11,.25);
-            border-radius: 5px;
-            padding: 8px 14px;
-            margin-bottom: 12px;
-            font-size: 11px;
-            color: var(--amber);
-            line-height: 1.5;
-        }
-
-        /* Result grid — 3 columns */
-        .result-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
-        }
-        @media (max-width: 1100px) { .result-grid { grid-template-columns: repeat(2, 1fr); } }
-        @media (max-width: 750px)  { .result-grid { grid-template-columns: 1fr; } }
-
-        /* Compact result card */
-        .r-card {
-            background: var(--bg-panel);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            overflow: hidden;
-            transition: border-color .2s, transform .15s;
-            cursor: default;
-        }
-        .r-card:hover { border-color: var(--border-bright); transform: translateY(-1px); }
-        .r-card-thumb {
-            width: 100%;
-            height: 140px;
-            object-fit: cover;
-            display: block;
-            background: #0a0c10;
-        }
-        .r-card-thumb-pair {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            height: 140px;
-            gap: 1px;
-            background: var(--border);
-        }
-        .r-card-thumb-pair img {
-            width: 100%; height: 100%;
-            object-fit: cover;
-            display: block;
-            background: #000;
-        }
-        .r-card-body { padding: 10px 12px 12px; }
-        .r-card-id {
-            font-size: 10px;
-            color: var(--text-muted);
-            letter-spacing: .06em;
-            margin-bottom: 6px;
-        }
-        .r-card-id strong { color: var(--text-secondary); font-family: var(--mono); }
-        .r-card-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 4px;
-        }
-        .r-card-label { font-size: 10px; color: var(--text-muted); letter-spacing: .05em; }
-        .r-card-val { font-size: 11px; font-family: var(--mono); color: var(--text-secondary); }
-        .quality-tag {
-            font-size: 9.5px;
-            font-weight: 700;
-            letter-spacing: .07em;
-            padding: 2px 8px;
-            border-radius: 3px;
-        }
-        .quality-semantic  { background: var(--cyan-dim);  color: var(--cyan);  border: 1px solid rgba(0,212,232,.25); }
-        .quality-closest   { background: var(--amber-dim); color: var(--amber); border: 1px solid rgba(245,158,11,.25); }
-        .quality-no-match  { background: var(--red-dim);   color: var(--red);   border: 1px solid rgba(239,68,68,.25); }
-        .r-card-action {
-            margin-top: 10px;
-            padding-top: 8px;
-            border-top: 1px solid var(--border);
-        }
-        .btn-analyze {
-            width: 100%;
-            padding: 6px;
-            background: var(--bg-elevated);
-            border: 1px solid var(--border);
-            color: var(--text-secondary);
-            border-radius: 4px;
-            font-size: 11px;
-            font-weight: 600;
-            letter-spacing: .06em;
-            cursor: pointer;
-            transition: all .15s;
-        }
-        .btn-analyze:hover { border-color: var(--cyan); color: var(--cyan); background: var(--cyan-dim); }
-
-        /* skeleton */
-        .skeleton {
-            background: linear-gradient(90deg, var(--bg-elevated) 25%, var(--bg-input) 50%, var(--bg-elevated) 75%);
-            background-size: 200% 100%;
-            animation: shimmer 1.4s infinite;
-            border-radius: 6px;
-        }
-        @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
-
-        .empty-state {
-            text-align: center;
-            padding: 40px 20px;
-            color: var(--text-muted);
-        }
-        .empty-state-icon { font-size: 28px; margin-bottom: 10px; opacity: .5; }
-        .empty-state-title { font-size: 13px; color: var(--text-secondary); margin-bottom: 6px; }
-        .empty-state-sub   { font-size: 11.5px; line-height: 1.6; }
-
-        /* no-match */
-        .no-match-box {
-            background: var(--bg-elevated);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            padding: 24px;
-            text-align: center;
-        }
-        .no-match-icon { font-size: 24px; margin-bottom: 8px; }
-        .no-match-title { font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px; }
-        .no-match-sub   { font-size: 11.5px; color: var(--text-muted); line-height: 1.6; max-width: 400px; margin: 0 auto; }
-
-        /* ── Change Analysis page ────────────────────────────────────────── */
-        .ca-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 14px;
-            margin-bottom: 14px;
-        }
-        .ca-panel {
-            background: var(--bg-panel);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            overflow: hidden;
-        }
-        .ca-panel-header {
-            padding: 8px 14px;
-            background: var(--bg-elevated);
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .ca-panel-title {
-            font-size: 10.5px;
-            font-weight: 700;
-            letter-spacing: .09em;
-            color: var(--text-secondary);
-        }
-        .ca-panel-img {
-            width: 100%;
-            aspect-ratio: 1;
-            object-fit: cover;
-            display: block;
-            background: #000;
-        }
-        .ca-wide {
-            grid-column: 1 / -1;
-        }
-        .ca-img-contain {
-            width: 100%;
-            max-height: 260px;
-            object-fit: contain;
-            display: block;
-            background: #000;
-        }
-        .ca-label-img {
-            width: 100%;
-            max-height: 200px;
-            object-fit: contain;
-            display: block;
-            background: #000;
-        }
-        .ca-unavailable {
-            padding: 20px;
-            text-align: center;
-            color: var(--text-muted);
-            font-size: 11.5px;
-        }
-
-        .metrics-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            margin-bottom: 14px;
-        }
-        .metric-card {
-            background: var(--bg-panel);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            padding: 12px 14px;
-        }
-        .metric-title {
-            font-size: 9.5px;
-            letter-spacing: .1em;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            margin-bottom: 8px;
-        }
-        .metric-val {
-            font-size: 22px;
-            font-weight: 800;
-            font-family: var(--mono);
-            line-height: 1;
-            margin-bottom: 4px;
-        }
-        .metric-sub { font-size: 10.5px; color: var(--text-muted); line-height: 1.4; }
-
-        .fa-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 8px;
-        }
-        .fa-box {
-            background: var(--bg-elevated);
-            border-radius: 5px;
-            padding: 10px;
-            text-align: center;
-        }
-        .fa-box-label { font-size: 9.5px; color: var(--text-muted); letter-spacing: .07em; text-transform: uppercase; margin-bottom: 4px; }
-        .fa-box-val   { font-size: 12px; font-family: var(--mono); color: var(--text-secondary); }
-        .fa-box-delta { font-size: 10px; color: var(--green); margin-top: 2px; }
-
-        .pair-selector {
-            background: var(--bg-panel);
-            border: 1px solid var(--border);
-            border-radius: 6px;
+        .lp-header {
             padding: 12px 16px;
-            margin-bottom: 14px;
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            flex-wrap: wrap;
-        }
-        .pair-selector label {
-            font-size: 10px;
-            color: var(--text-muted);
-            letter-spacing: .07em;
-            text-transform: uppercase;
-            display: block;
-            margin-bottom: 3px;
-        }
-        .pair-selector select {
-            background: var(--bg-elevated);
-            border: 1px solid var(--border);
-            color: var(--text-primary);
-            padding: 6px 12px;
-            border-radius: 4px;
             font-size: 12px;
-            cursor: pointer;
-            outline: none;
-        }
-        .pair-selector select:focus { border-color: var(--cyan); }
-
-        /* ── System page ─────────────────────────────────────────────────── */
-        .sys-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 14px;
-        }
-        .sys-card {
-            background: var(--bg-panel);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            padding: 16px;
-        }
-        .sys-card h3 {
-            font-size: 10.5px;
-            font-weight: 700;
-            letter-spacing: .09em;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            margin-bottom: 12px;
-            padding-bottom: 8px;
-            border-bottom: 1px solid var(--border);
-        }
-        .sys-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 6px 0;
-            border-bottom: 1px solid var(--border);
-        }
-        .sys-row:last-child { border: none; }
-        .sys-key   { font-size: 11.5px; color: var(--text-secondary); }
-        .sys-val   { font-size: 11px; font-family: var(--mono); color: var(--text-muted); }
-        .sys-val.ok  { color: var(--green); }
-        .sys-val.warn{ color: var(--amber); }
-
-        /* ── Modal (Temporal Analysis) ────────────────────────────────────── */
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,.7);
-            backdrop-filter: blur(4px);
-            z-index: 100;
-            align-items: center;
-            justify-content: center;
-        }
-        .modal-overlay.open { display: flex; }
-        .modal-box {
-            background: var(--bg-panel);
-            border: 1px solid var(--border-bright);
-            border-radius: 8px;
-            width: 92vw;
-            max-width: 1160px;
-            max-height: 88vh;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-        .modal-header {
-            padding: 14px 20px;
-            background: var(--bg-elevated);
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .modal-title {
-            font-size: 12px;
-            font-weight: 700;
-            letter-spacing: .08em;
-            flex: 1;
-        }
-        .modal-pair-id {
-            font-family: var(--mono);
-            font-size: 11px;
+            font-weight: 600;
             color: var(--text-secondary);
+            border-bottom: 1px solid var(--border);
+            background: var(--bg-base);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
-        .btn-close {
-            background: none;
-            border: none;
-            color: var(--text-muted);
-            font-size: 18px;
-            cursor: pointer;
-            line-height: 1;
-            padding: 2px 6px;
-            border-radius: 4px;
-            transition: color .15s;
-        }
-        .btn-close:hover { color: var(--text-primary); }
-        .modal-body {
+        .lp-content {
             flex: 1;
             overflow-y: auto;
-            padding: 18px 20px;
-            display: grid;
-            grid-template-columns: 1fr 320px;
-            gap: 18px;
-        }
-        .modal-evidence { display: flex; flex-direction: column; gap: 12px; }
-        .modal-analysis {
-            border-left: 1px solid var(--border);
-            padding-left: 18px;
             display: flex;
             flex-direction: column;
-            gap: 14px;
         }
-
-        .evidence-pair {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
+        .lp-section {
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
         }
-        .ev-panel {
-            background: var(--bg-elevated);
+        .lp-section-title {
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+        select.form-sel {
+            width: 100%;
+            background: var(--bg-panel);
             border: 1px solid var(--border);
-            border-radius: 5px;
+            color: var(--text-primary);
+            padding: 6px 8px;
+            font-size: 13px;
+            border-radius: 2px;
+            outline: none;
+        }
+        select.form-sel:focus { border-color: var(--cyan); }
+        
+        .r-item {
+            display: flex;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            gap: 12px;
+        }
+        .r-thumb {
+            width: 60px;
+            height: 60px;
+            background: #E5E7EB;
+            border: 1px solid var(--border);
+            flex-shrink: 0;
+            object-fit: cover;
+        }
+        .r-info { flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
+        .r-id { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+        .r-ds { font-size: 12px; color: var(--text-secondary); }
+        .btn-analyze {
+            align-self: flex-start;
+            background: transparent;
+            border: none;
+            color: var(--cyan);
+            font-size: 12px;
+            cursor: pointer;
+            padding: 0;
+            margin-top: 4px;
+            font-weight: 500;
+        }
+        .btn-analyze:hover { text-decoration: underline; }
+
+        /* ── Central Imagery Workspace ───────────────────────────────────── */
+        .viewer {
+            flex: 1;
+            position: relative;
+            background: #E5E7EB;
+            display: flex;
+            flex-direction: column;
             overflow: hidden;
         }
-        .ev-label {
-            padding: 5px 10px;
-            font-size: 9.5px;
-            font-weight: 700;
-            letter-spacing: .09em;
-            background: var(--bg-input);
-            border-bottom: 1px solid var(--border);
+        
+        #globeCanvas {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            width: 100%; height: 100%;
+            z-index: 1;
         }
-        .ev-label.before { color: var(--text-muted); }
-        .ev-label.after  { color: var(--cyan); }
-        .ev-label.change { color: var(--amber); }
-        .ev-label.ref    { color: var(--green); }
-        .ev-img {
-            width: 100%;
+        
+        .viewer-content {
+            position: relative;
+            z-index: 5;
+            flex: 1;
+            display: none;
+            flex-direction: column;
+        }
+
+        .cmp-container {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            cursor: crosshair;
+        }
+        
+        .img-layer {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
             object-fit: contain;
-            display: block;
-            background: #000;
-            max-height: 220px;
+            opacity: 1 !important;
+            mix-blend-mode: normal !important;
+            background: transparent;
+            transform-origin: center;
         }
-        .ev-unavailable {
-            padding: 18px;
-            text-align: center;
-            color: var(--text-muted);
-            font-size: 11px;
+        
+        #clip-layer {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            clip-path: polygon(50% 0, 100% 0, 100% 100%, 50% 100%);
+            pointer-events: none;
         }
-
-        .an-section-title {
-            font-size: 9.5px;
-            font-weight: 700;
-            letter-spacing: .1em;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            margin-bottom: 8px;
-            padding-bottom: 6px;
-            border-bottom: 1px solid var(--border);
+        
+        /* Thin neutral slider */
+        .cmp-slider {
+            position: absolute;
+            top: 0; left: 50%;
+            width: 2px;
+            height: 100%;
+            background: var(--border-bright);
+            cursor: ew-resize;
+            z-index: 100;
         }
-        .an-row {
+        .cmp-handle {
+            position: absolute;
+            top: 50%;
+            left: -8px;
+            width: 18px;
+            height: 30px;
+            background: #FFFFFF;
+            border: 1px solid var(--border-bright);
+            border-radius: 2px;
+            transform: translateY(-50%);
             display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            padding: 5px 0;
-            border-bottom: 1px solid var(--border);
-            gap: 8px;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
-        .an-row:last-child { border: none; }
-        .an-key { font-size: 11px; color: var(--text-secondary); }
-        .an-val { font-size: 11px; font-family: var(--mono); color: var(--cyan); text-align: right; }
-        .an-status {
-            font-size: 11px;
-            font-weight: 700;
-            padding: 3px 9px;
-            border-radius: 3px;
-            letter-spacing: .04em;
-        }
-        .status-no-change { background:var(--green-dim); color:var(--green); }
-        .status-possible  { background:var(--amber-dim); color:var(--amber); }
-        .status-review    { background:var(--red-dim);   color:var(--red);   }
-
-        .an-summary-text {
-            font-size: 11.5px;
+        .cmp-handle::after {
+            content: '||';
             color: var(--text-secondary);
-            line-height: 1.7;
-        }
-        .an-confounder {
-            font-size: 10.5px;
-            color: var(--amber);
-            padding: 2px 0;
-        }
-
-        .fa-reduction-big {
-            font-size: 28px;
-            font-weight: 800;
-            font-family: var(--mono);
-            color: var(--green);
-            line-height: 1;
-        }
-        .fa-reduction-label {
             font-size: 10px;
-            color: var(--text-muted);
-            margin-top: 3px;
+            font-weight: bold;
+            letter-spacing: -1px;
         }
-        .fa-row {
+        
+        .layer-labels {
+            position: absolute;
+            top: 16px; left: 16px; right: 16px;
             display: flex;
             justify-content: space-between;
-            font-size: 10.5px;
-            padding: 4px 0;
+            pointer-events: none;
+            z-index: 90;
+        }
+        .img-lbl {
+            background: rgba(255,255,255,0.85);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 4px 8px;
+            font-size: 12px;
+            font-weight: 600;
+            border-radius: 2px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        /* ── Viewer Toolbar ──────────────────────────────────────────────── */
+        .viewer-toolbar {
+            height: 48px;
+            background: var(--bg-panel);
+            border-top: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            gap: 16px;
+            flex-shrink: 0;
+            z-index: 101;
+        }
+        .vt-group {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            border-right: 1px solid var(--border);
+            padding-right: 16px;
+        }
+        .vt-group:last-child { border-right: none; }
+        
+        .vt-btn {
+            background: transparent;
+            border: 1px solid transparent;
+            color: var(--text-primary);
+            padding: 6px 12px;
+            font-size: 12px;
+            cursor: pointer;
+            border-radius: 2px;
+        }
+        .vt-btn:hover { background: var(--bg-input); }
+        .vt-btn.active { background: var(--bg-input); color: var(--text-primary); font-weight: 600; border: 1px solid var(--border); }
+        
+        /* Modals / Tools */
+        .tool-panel {
+            display: none;
+            position: absolute;
+            bottom: 60px;
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            padding: 16px;
+            border-radius: 2px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 100;
+            width: 320px;
+        }
+        .tp-header {
+            font-weight: 600;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
             border-bottom: 1px solid var(--border);
-            color: var(--text-muted);
         }
-        .fa-row:last-child { border: none; }
-        .fa-row .v2 { color: var(--green); }
+        .tp-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            font-size: 12px;
+        }
+        .tp-row input[type="range"] { width: 140px; }
 
-        .pilot-note {
-            font-size: 10px;
-            color: var(--text-muted);
-            font-style: italic;
+        /* ── Right Inspector ─────────────────────────────────────────────── */
+        .right-panel {
+            width: var(--right-w);
+            background: var(--bg-panel);
+            border-left: 1px solid var(--border);
+            display: none; /* hidden until analysis */
+            flex-direction: column;
+            z-index: 20;
+            overflow-y: auto;
+        }
+        
+        .rp-header {
+            padding: 12px 16px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border);
+            background: var(--bg-base);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .rp-content { padding: 16px; display: block; }
+        .rp-section { margin-bottom: 24px; }
+        .rp-section-title {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 4px;
+        }
+
+        .kv-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            margin-bottom: 8px;
+        }
+        .kv-key { color: var(--text-secondary); }
+        .kv-val { color: var(--text-primary); font-weight: 500; text-align: right; }
+        
+        .alert-box {
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            padding: 12px;
+            font-size: 12px;
+            border-radius: 2px;
+            margin-top: 12px;
             line-height: 1.5;
-            margin-top: 6px;
+            color: var(--text-primary);
+        }
+        .alert-box.warning { background: var(--red-dim); border-color: var(--red); color: var(--red); font-weight: 500; }
+        .alert-box.success { background: var(--green-dim); border-color: var(--green); color: var(--green); font-weight: 500; }
+
+        .analyst-summary {
+            font-size: 12px;
+            color: var(--text-primary);
+            line-height: 1.5;
         }
 
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .spinner {
-            width: 20px; height: 20px;
-            border: 2px solid var(--border);
-            border-top-color: var(--cyan);
-            border-radius: 50%;
-            animation: spin .7s linear infinite;
-            margin: 0 auto 8px;
+        /* ── Timeline ────────────────────────────────────────────────────── */
+        .timeline-area {
+            height: var(--timeline-h);
+            background: var(--bg-panel);
+            border-top: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            z-index: 50;
         }
+        
+        .tl-track {
+            display: flex;
+            align-items: center;
+            width: 500px;
+            position: relative;
+            padding: 0 20px;
+            visibility: hidden;
+        }
+        .tl-line {
+            flex: 1;
+            height: 2px;
+            background: var(--border);
+        }
+        .tl-node {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--text-primary);
+            position: relative;
+            z-index: 2;
+        }
+        .tl-label {
+            position: absolute;
+            top: 16px;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-primary);
+            transform: translateX(-50%);
+            white-space: nowrap;
+        }
+        
     </style>
 </head>
 <body>
 
-<!-- ── Sidebar ──────────────────────────────────────────────────────────── -->
-<aside class="sidebar">
-    <div class="sidebar-logo">
-        <div class="sidebar-logo-name">◈ TERRASENSE-X</div>
-        <div class="sidebar-logo-sub">GEOSPATIAL INTELLIGENCE</div>
-    </div>
+    <svg width="0" height="0" style="position:absolute; z-index:-1;">
+      <filter id="img-adjust" color-interpolation-filters="sRGB">
+        <feComponentTransfer id="gamma-transfer">
+          <feFuncR type="gamma" amplitude="1" exponent="1" offset="0"/>
+          <feFuncG type="gamma" amplitude="1" exponent="1" offset="0"/>
+          <feFuncB type="gamma" amplitude="1" exponent="1" offset="0"/>
+        </feComponentTransfer>
+      </filter>
+    </svg>
 
-    <nav class="sidebar-nav">
-        <div class="sidebar-section-label">Workspace</div>
-        <div class="nav-item active" id="nav-search" onclick="nav('search')">
-            <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
-                <circle cx="6.5" cy="6.5" r="4.5"/><path d="M11 11l3 3"/>
-            </svg>
-            Semantic Search
-        </div>
-        <div class="nav-item" id="nav-analysis" onclick="nav('analysis')">
-            <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
-                <rect x="1" y="3" width="6" height="10" rx="1"/>
-                <rect x="9" y="3" width="6" height="10" rx="1"/>
-            </svg>
-            Temporal Analysis
-        </div>
-        <div class="nav-item" id="nav-system" onclick="nav('system')">
-            <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
-                <circle cx="8" cy="8" r="2"/>
-                <path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.1 3.1l1.4 1.4M11.5 11.5l1.4 1.4M3.1 12.9l1.4-1.4M11.5 4.5l1.4-1.4"/>
-            </svg>
-            System
-        </div>
-
-        <div class="sidebar-section-label" style="margin-top:8px;">Datasets</div>
-        <div class="nav-item" onclick="switchDataset('s2looking')" id="ds-s2looking" style="font-size:11.5px;">
-            <svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="8" r="3"/></svg>
-            S2Looking Demo
-        </div>
-        <div class="nav-item" onclick="switchDataset('s2looking_large')" id="ds-s2looking_large" style="font-size:11.5px;">
-            <svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="8" r="3"/></svg>
-            S2Looking 500-pair
-        </div>
-    </nav>
-
-    <div class="sidebar-status">
-        <div style="font-size:9px; letter-spacing:.1em; color:var(--text-muted); text-transform:uppercase; margin-bottom:4px;">Status</div>
-        <div class="status-row"><div class="status-dot green"></div>Offline Runtime<span class="status-val" id="ss-offline">READY</span></div>
-        <div class="status-row"><div class="status-dot" id="ss-model-dot" style="background:var(--text-muted);"></div>RemoteCLIP<span class="status-val" id="ss-model">—</span></div>
-        <div class="status-row"><div class="status-dot" id="ss-idx-dot" style="background:var(--text-muted);"></div>Demo Index<span class="status-val" id="ss-idx">—</span></div>
-        <div class="status-row"><div class="status-dot" id="ss-large-dot" style="background:var(--text-muted);"></div>Large Index<span class="status-val" id="ss-large">—</span></div>
-    </div>
-</aside>
-
-<!-- ── Main area ─────────────────────────────────────────────────────────── -->
-<div class="main">
-
-    <!-- Globe canvas (decorative, behind content) -->
-    <canvas id="globeCanvas"></canvas>
-
-    <!-- Top bar -->
-    <div class="topbar">
-        <span class="topbar-title" id="topbar-title">Semantic Search — S2Looking</span>
-        <span class="topbar-badge badge-dataset" id="topbar-dataset-badge">S2LOOKING CHANGE BENCHMARK</span>
-        <span class="topbar-badge badge-offline">● OFFLINE</span>
-    </div>
-
-    <div class="page-area">
-
-        <!-- ── Search page ──────────────────────────────────────────────── -->
-        <div id="page-search" class="page active">
-            <div class="pg-header">
-                <div class="pg-title">Semantic Discovery</div>
-                <div class="pg-sub">Find satellite imagery by concept using RemoteCLIP + FAISS retrieval</div>
-            </div>
-
-            <div class="search-bar">
-                <input id="searchInput" class="search-input" type="text"
-                    placeholder="e.g. building, roads, farmland, urban area …"
-                    onkeydown="if(event.key==='Enter') executeSearch()">
-                <button class="btn" onclick="document.getElementById('searchInput').value=''">Clear</button>
-                <button class="btn btn-primary" onclick="executeSearch()">Search</button>
-            </div>
-
-            <div class="chips">
-                <div class="chip" onclick="setSearch('building')">building</div>
-                <div class="chip" onclick="setSearch('industrial area')">industrial area</div>
-                <div class="chip" onclick="setSearch('roads')">roads</div>
-                <div class="chip" onclick="setSearch('farmland')">farmland</div>
-                <div class="chip" onclick="setSearch('urban scene')">urban scene</div>
-            </div>
-
-            <!-- Dataset context banner -->
-            <div class="dataset-banner">
-                <div class="dataset-banner-icon">ℹ</div>
-                <div class="dataset-banner-text">
-                    <div class="dataset-banner-title" id="banner-dataset-title">SEARCHING: S2LOOKING CHANGE BENCHMARK</div>
-                    <div class="dataset-banner-note" id="banner-dataset-note">
-                        S2Looking is a building-change detection dataset. Broad semantic coverage (rivers, forests, airports) is limited. Results for underrepresented concepts are labeled <strong>CLOSEST AVAILABLE</strong>.
-                    </div>
-                </div>
-            </div>
-
-            <!-- Hidden dataset radio -->
-            <div style="display:none;">
-                <input type="radio" name="dataset" value="s2looking" checked id="radio-s2looking">
-                <input type="radio" name="dataset" value="s2looking_large" id="radio-large">
-            </div>
-
-            <div id="searchResults">
-                <div class="empty-state">
-                    <div class="empty-state-icon">🛰</div>
-                    <div class="empty-state-title">No search executed yet</div>
-                    <div class="empty-state-sub">Enter a query above or click a chip to begin retrieval</div>
-                </div>
+    <!-- TOP BAR -->
+    <header class="topbar">
+        <div class="tb-left">
+            <div class="tb-brand">TERRASENSE-X</div>
+            <div class="tb-search">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--text-muted);"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <input type="text" id="searchInput" placeholder="Search..." onkeydown="if(event.key==='Enter') executeSearch()">
             </div>
         </div>
+        <div class="tb-right">
+            <span>Dataset: <strong id="ds-badge">S2Looking</strong></span>
+            <span>Offline</span>
+        </div>
+    </header>
 
-        <!-- ── Temporal Analysis page ────────────────────────────────────── -->
-        <div id="page-analysis" class="page">
-            <div class="pg-header">
-                <div class="pg-title">Temporal Analysis — S2Looking</div>
-                <div class="pg-sub">Compare temporal pairs and inspect detected change</div>
-            </div>
-
-            <div class="pair-selector">
-                <div>
-                    <label>Dataset</label>
-                    <div style="font-size:12px; color:var(--text-secondary); background:var(--bg-elevated); padding:5px 12px; border-radius:4px; border:1px solid var(--border);">S2Looking Demo (20 pairs)</div>
-                </div>
-                <div>
-                    <label for="pairSelect">Temporal Pair</label>
-                    <select id="pairSelect">
-                        <option value="">— select pair —</option>
-                        <option value="1.png">1.png</option><option value="10.png">10.png</option>
-                        <option value="100.png">100.png</option><option value="1000.png">1000.png</option>
-                        <option value="1002.png">1002.png</option><option value="1003.png">1003.png</option>
-                        <option value="1004.png">1004.png</option><option value="1005.png">1005.png</option>
-                        <option value="1006.png">1006.png</option><option value="1007.png">1007.png</option>
-                        <option value="1009.png">1009.png</option><option value="101.png">101.png</option>
-                        <option value="1010.png">1010.png</option><option value="1012.png">1012.png</option>
-                        <option value="1013.png">1013.png</option><option value="1014.png">1014.png</option>
-                        <option value="1015.png">1015.png</option><option value="1017.png">1017.png</option>
-                        <option value="1018.png">1018.png</option><option value="1019.png">1019.png</option>
+    <div class="app-body">
+        
+        <!-- LEFT CATALOG -->
+        <aside class="left-panel">
+            <div class="lp-header">Catalog</div>
+            <div class="lp-content">
+                <div class="lp-section">
+                    <div class="lp-section-title">Collections</div>
+                    <select class="form-sel" id="datasetSelect" onchange="switchDataset(this.value)">
+                        <option value="s2looking">S2Looking Demo</option>
+                        <option value="s2looking_large">S2Looking Benchmark</option>
                     </select>
                 </div>
-                <button class="btn btn-primary" onclick="runDemoAnalysis()" style="align-self:flex-end;">Analyze Pair</button>
-            </div>
-
-            <div id="ca-empty" style="text-align:center; padding:40px; color:var(--text-muted); font-size:12px;">Select a temporal pair and click Analyze Pair.</div>
-            <div id="ca-loading" style="display:none; text-align:center; padding:32px;">
-                <div class="spinner"></div>
-                <div style="font-size:12px; color:var(--text-muted);">Running V2 change detection…</div>
-            </div>
-
-            <div id="ca-results" style="display:none;">
-                <!-- Before / After -->
-                <div class="ca-grid">
-                    <div class="ca-panel">
-                        <div class="ca-panel-header">
-                            <span style="width:8px;height:8px;border-radius:2px;background:var(--text-muted);display:inline-block;"></span>
-                            <span class="ca-panel-title">BEFORE — T1</span>
-                            <span style="margin-left:auto;font-size:10px;color:var(--text-muted);">Earlier observation</span>
-                        </div>
-                        <img id="ca-before" class="ca-panel-img" src="" onerror="this.style.opacity=.15">
-                    </div>
-                    <div class="ca-panel">
-                        <div class="ca-panel-header">
-                            <span style="width:8px;height:8px;border-radius:2px;background:var(--cyan);display:inline-block;"></span>
-                            <span class="ca-panel-title" style="color:var(--cyan);">AFTER — T2</span>
-                            <span style="margin-left:auto;font-size:10px;color:var(--text-muted);">Later observation</span>
-                        </div>
-                        <img id="ca-after" class="ca-panel-img" src="" onerror="this.style.opacity=.15">
-                    </div>
-                </div>
-
-                <!-- Change map + label -->
-                <div class="ca-grid" style="margin-bottom:14px;">
-                    <div class="ca-panel">
-                        <div class="ca-panel-header">
-                            <span class="ca-panel-title" style="color:var(--amber);">DETECTED CHANGE (V2)</span>
-                            <span style="margin-left:auto;font-size:9.5px;color:var(--text-muted);">V2 pipeline · not ground truth</span>
-                        </div>
-                        <img id="ca-overlay" class="ca-img-contain" src="" onerror="this.style.display='none'; document.getElementById('ca-overlay-na').style.display='block'">
-                        <div id="ca-overlay-na" class="ca-unavailable" style="display:none;">Change overlay not yet generated</div>
-                    </div>
-                    <div class="ca-panel">
-                        <div class="ca-panel-header">
-                            <span class="ca-panel-title" style="color:var(--green);">GROUND-TRUTH REFERENCE</span>
-                            <span style="margin-left:auto;font-size:9.5px;color:var(--text-muted);">S2Looking annotation</span>
-                        </div>
-                        <img id="ca-label" class="ca-label-img" src="" onerror="this.style.display='none'; document.getElementById('ca-label-na').style.display='block'">
-                        <div id="ca-label-na" class="ca-unavailable" style="display:none;">REFERENCE UNAVAILABLE</div>
-                    </div>
-                </div>
-
-                <!-- Metrics row -->
-                <div class="metrics-grid">
-                    <div class="metric-card">
-                        <div class="metric-title">Review Status</div>
-                        <div id="ca-status" class="metric-val" style="font-size:15px; color:var(--text-secondary);">—</div>
-                        <div class="metric-sub" id="ca-summary">—</div>
-                    </div>
-                    <div class="metric-card">
-                        <div class="metric-title">Detected Area</div>
-                        <div class="metric-val" id="ca-area" style="color:var(--cyan);">—</div>
-                        <div class="metric-sub">Detected regions: <span id="ca-regions">—</span></div>
-                    </div>
-                    <div class="metric-card">
-                        <div class="metric-title">Potential Confounders</div>
-                        <div id="ca-confounders" style="font-size:11px; color:var(--amber); line-height:1.6;">—</div>
-                    </div>
-                </div>
-
-                <!-- False alarm reduction -->
-                <div class="ca-panel">
-                    <div class="ca-panel-header">
-                        <span class="ca-panel-title">FALSE-ALARM REDUCTION</span>
-                        <span style="margin-left:auto;font-size:9.5px;color:var(--text-muted);">20-pair S2Looking pilot — not full-dataset benchmark</span>
-                    </div>
-                    <div style="padding:14px 16px;">
-                        <div style="display:flex;align-items:baseline;gap:14px;margin-bottom:12px;">
-                            <div class="fa-reduction-big">63.47%</div>
-                            <div>
-                                <div style="font-size:12px;font-weight:600;color:var(--text-primary);">False Positive Pixel Reduction</div>
-                                <div style="font-size:10.5px;color:var(--text-muted);">V1 raw difference → V2 align + normalize + filter</div>
-                            </div>
-                        </div>
-                        <div class="fa-grid">
-                            <div class="fa-box"><div class="fa-box-label">V1 FP</div><div class="fa-box-val" style="color:var(--red);">1,099,177 px</div></div>
-                            <div class="fa-box"><div class="fa-box-label">V2 FP</div><div class="fa-box-val" style="color:var(--green);">401,555 px</div></div>
-                            <div class="fa-box"><div class="fa-box-label">Precision</div><div class="fa-box-val">4.2%<div class="fa-box-delta">→ 18.4%</div></div></div>
-                            <div class="fa-box"><div class="fa-box-label">Recall</div><div class="fa-box-val">11.7%<div class="fa-box-delta">→ 21.9%</div></div></div>
-                        </div>
-                        <div class="pilot-note">Measured on a 20-pair pilot. This is not a calibrated false-alarm probability for operational deployment.</div>
-                    </div>
+                <div class="lp-section" style="padding: 0; border: none;">
+                    <div class="lp-header" style="border-top: 1px solid var(--border);">Scenes</div>
+                    <div id="res-count" style="padding: 12px 16px; font-size: 12px; color: var(--text-secondary); border-bottom: 1px solid var(--border);"></div>
+                    <div id="resultsList"></div>
                 </div>
             </div>
-        </div>
+        </aside>
 
-        <!-- ── System page ────────────────────────────────────────────────── -->
-        <div id="page-system" class="page">
-            <div class="pg-header">
-                <div class="pg-title">System Architecture</div>
-                <div class="pg-sub">Local runtime status and model specifications</div>
+        <!-- CENTER WORKSPACE -->
+        <main class="viewer" id="main-viewer">
+            <canvas id="globeCanvas"></canvas>
+            
+            <div class="viewer-content" id="viewer-content">
+                
+                <div class="layer-labels">
+                    <div class="img-lbl" id="lbl-t1">T1 — BEFORE</div>
+                    <div class="img-lbl" id="lbl-t2">T2 — AFTER</div>
+                </div>
+
+                <!-- Swipe Comparison Container -->
+                <div class="cmp-container" id="cmp-container">
+                    <img id="v-before" class="img-layer" src="">
+                    
+                    <div id="clip-layer">
+                        <img id="v-after" class="img-layer" src="">
+                        <img id="v-overlay" class="img-layer" style="display:none;" src="">
+                        <img id="v-mask" class="img-layer" style="display:none;" src="">
+                        <img id="v-label" class="img-layer" style="display:none;" src="">
+                    </div>
+                    
+                    <div class="cmp-slider" id="cmp-slider">
+                        <div class="cmp-handle"></div>
+                    </div>
+                </div>
+
+                <!-- Viewer Toolbar -->
+                <div class="viewer-toolbar">
+                    <div class="vt-group">
+                        <button class="vt-btn" onclick="zoomView(-0.2)">Zoom −</button>
+                        <button class="vt-btn" onclick="zoomView(0.2)">Zoom +</button>
+                        <button class="vt-btn" onclick="resetZoom()">Fit</button>
+                    </div>
+                    
+                    <div class="vt-group">
+                        <button class="vt-btn" id="btn-t1" onclick="setViewMode('t1')">T1 — BEFORE</button>
+                        <button class="vt-btn" id="btn-t2" onclick="setViewMode('t2')">T2 — AFTER</button>
+                        <button class="vt-btn" id="btn-overlay" onclick="setViewMode('overlay')">CHANGE OVERLAY</button>
+                        <button class="vt-btn" id="btn-mask" onclick="setViewMode('mask')">CHANGE MASK</button>
+                        <button class="vt-btn" id="btn-ref" onclick="setViewMode('reference')">REFERENCE</button>
+                        <button class="vt-btn active" id="btn-swipe" onclick="setViewMode('swipe')">SPLIT / SWIPE</button>
+                    </div>
+                    
+                    <div class="vt-group">
+                        <button class="vt-btn" onclick="toggleTool('enhance-panel')">Enhance</button>
+                    </div>
+
+                    <button class="vt-btn" style="margin-left: auto; color: var(--text-primary);" onclick="closeAnalysis()">Close</button>
+                </div>
+                
+                <!-- HOW TO READ Legend -->
+                <div id="viewer-legend" style="position: absolute; bottom: 16px; left: 16px; background: rgba(10,12,16,0.9); padding: 12px; border: 1px solid var(--border); border-radius: 4px; font-size: 12px; color: var(--text-secondary); pointer-events: none; z-index: 100;">
+                    <strong style="color: var(--text-primary); margin-bottom: 4px; display: block;">HOW TO READ</strong>
+                    T1 — Earlier image<br>
+                    T2 — Later image<br>
+                    <span style="color: #ff3c00;">Red</span> — Change detected by the system<br>
+                    <span style="color: #ffffff;">White</span> — Changed pixels in the detector mask<br>
+                    <span style="color: #000000; background: #666; padding: 0 2px;">Black</span> — Unchanged pixels<br>
+                    Reference — S2LOOKING GROUND-TRUTH REFERENCE, when available
+                </div>
+
+                <!-- Enhance Panel -->
+                <div class="tool-panel" id="enhance-panel" style="left: 100px;">
+                    <div class="tp-header">Image Display</div>
+                    <div class="tp-row">
+                        <span>Brightness</span>
+                        <input type="range" id="adj-brightness" min="0" max="200" value="100" oninput="updateDisplay()">
+                    </div>
+                    <div class="tp-row">
+                        <span>Contrast</span>
+                        <input type="range" id="adj-contrast" min="0" max="200" value="100" oninput="updateDisplay()">
+                    </div>
+                    <div class="tp-row">
+                        <span>Gamma</span>
+                        <input type="range" id="adj-gamma" min="10" max="300" value="100" oninput="updateDisplay()">
+                    </div>
+                    <div class="tp-row" style="margin-top:16px;">
+                        <button class="vt-btn" onclick="document.getElementById('adj-brightness').value=100; document.getElementById('adj-contrast').value=100; document.getElementById('adj-gamma').value=100; updateDisplay();">Reset</button>
+                    </div>
+                </div>
+                
             </div>
-            <div class="sys-grid">
-                <div class="sys-card">
-                    <h3>Runtime</h3>
-                    <div class="sys-row"><span class="sys-key">API Status</span><span class="sys-val ok">ONLINE</span></div>
-                    <div class="sys-row"><span class="sys-key">Offline Mode</span><span class="sys-val ok" id="sys-offline">READY</span></div>
-                    <div class="sys-row"><span class="sys-key">Device</span><span class="sys-val">Local CPU/GPU</span></div>
-                    <div class="sys-row"><span class="sys-key">Network</span><span class="sys-val ok">NOT REQUIRED</span></div>
+        </main>
+        
+        <!-- RIGHT INSPECTOR (UNIFIED) -->
+        <aside class="right-panel" id="right-panel">
+            <div class="rp-header">Inspector</div>
+            
+            <div class="rp-content">
+                <div class="rp-section">
+                    <div class="rp-section-title">CHANGE ANALYSIS</div>
+                    <div id="rp-status" class="alert-box">—</div>
+                    <div id="rp-analyst-summary" style="margin-top: 8px; font-size: 13px; color: var(--text-secondary);">—</div>
                 </div>
-                <div class="sys-card">
-                    <h3>ML Pipeline</h3>
-                    <div class="sys-row"><span class="sys-key">Embedding Model</span><span class="sys-val ok" id="sys-model">—</span></div>
-                    <div class="sys-row"><span class="sys-key">Vector Dimension</span><span class="sys-val">512</span></div>
-                    <div class="sys-row"><span class="sys-key">FAISS Type</span><span class="sys-val">IndexFlatIP</span></div>
-                    <div class="sys-row"><span class="sys-key">Similarity Threshold</span><span class="sys-val" id="sys-threshold">—</span></div>
+                
+                <div class="rp-section">
+                    <div class="rp-section-title">MEASUREMENTS</div>
+                    <div class="kv-row"><span class="kv-key">Changed pixels</span><span class="kv-val" id="rp-changed-pixels">—</span></div>
+                    <div class="kv-row"><span class="kv-key">Changed area</span><span class="kv-val" id="rp-changed-area">—</span></div>
+                    <div class="kv-row"><span class="kv-key">Detected regions</span><span class="kv-val" id="rp-detected-regions">—</span></div>
+                    <div class="kv-row"><span class="kv-key">Largest area</span><span class="kv-val" id="rp-largest-area">—</span></div>
                 </div>
-                <div class="sys-card">
-                    <h3>Indexes</h3>
-                    <div class="sys-row"><span class="sys-key">Demo Index (20 pairs)</span><span class="sys-val" id="sys-demo-idx">—</span></div>
-                    <div class="sys-row"><span class="sys-key">Large Index (500 pairs)</span><span class="sys-val" id="sys-large-idx">—</span></div>
-                    <div class="sys-row"><span class="sys-key">S2Looking Dataset</span><span class="sys-val ok">LOCAL</span></div>
+
+                <div class="rp-section">
+                    <div class="rp-section-title">VALIDATION</div>
+                    <div class="kv-row"><span class="kv-key">Reference</span><span class="kv-val" id="rp-ref-status">—</span></div>
+                    <div id="rp-validation" class="alert-box">—</div>
+                    <div class="kv-row" style="margin-top:12px;"><span class="kv-key">Ground-truth regions</span><span class="kv-val" id="rp-ref-regions">—</span></div>
                 </div>
-                <div class="sys-card">
-                    <h3>API Endpoints</h3>
-                    <div class="sys-row"><span class="sys-key">/search</span><span class="sys-val">FAISS retrieval</span></div>
-                    <div class="sys-row"><span class="sys-key">/analyze</span><span class="sys-key">Change detection</span></div>
-                    <div class="sys-row"><span class="sys-key">/s2looking/label</span><span class="sys-val">Safe label serve</span></div>
-                    <div class="sys-row"><span class="sys-key">/s2looking/image</span><span class="sys-val">Safe image serve</span></div>
+
+                <div class="rp-section">
+                    <div class="rp-section-title">ANALYST SUMMARY</div>
+                    <div class="analyst-summary" id="rp-summary">—</div>
                 </div>
             </div>
-        </div>
+        </aside>
 
-    </div><!-- /.page-area -->
-</div><!-- /.main -->
-
-<!-- ── Temporal Analysis Modal ───────────────────────────────────────────── -->
-<div id="analysisModal" class="modal-overlay">
-    <div class="modal-box">
-        <div class="modal-header">
-            <span class="modal-title">TEMPORAL ANALYSIS</span>
-            <span class="modal-pair-id" id="modal-pair-id"></span>
-            <span style="margin-left:auto;margin-right:10px;font-size:10px;color:var(--text-muted);" id="modal-dataset-tag"></span>
-            <button class="btn-close" onclick="closeModal()">×</button>
-        </div>
-        <div class="modal-body">
-
-            <!-- Left: evidence panels -->
-            <div class="modal-evidence">
-                <!-- Before / After -->
-                <div class="evidence-pair">
-                    <div class="ev-panel">
-                        <div class="ev-label before">BEFORE — T1</div>
-                        <img id="m-before" class="ev-img" src="" onerror="this.style.opacity=.15">
-                    </div>
-                    <div class="ev-panel">
-                        <div class="ev-label after">AFTER — T2</div>
-                        <img id="m-after" class="ev-img" src="" onerror="this.style.opacity=.15">
-                    </div>
-                </div>
-                <!-- Change map / overlay -->
-                <div class="ev-panel">
-                    <div class="ev-label change">CHANGE OVERLAY · Detected regions in red</div>
-                    <div id="m-change-loading" style="padding:20px;text-align:center;">
-                        <div class="spinner"></div>
-                        <div style="font-size:11px;color:var(--text-muted);">Generating change map…</div>
-                    </div>
-                    <img id="m-overlay" class="ev-img" src="" style="display:none;max-height:240px;" onerror="this.style.display='none'; document.getElementById('m-overlay-na').style.display='block'">
-                    <div id="m-overlay-na" class="ev-unavailable" style="display:none;">Change overlay unavailable</div>
-                </div>
-                <div class="ev-panel">
-                    <div class="ev-label change" style="color:var(--text-muted);">RAW CHANGE MASK · Binary evidence</div>
-                    <img id="m-mask" class="ev-img" src="" style="display:none;max-height:180px;" onerror="this.style.display='none';">
-                </div>
-                <!-- Reference label -->
-                <div class="ev-panel">
-                    <div class="ev-label ref">GROUND-TRUTH REFERENCE · S2Looking annotation</div>
-                    <img id="m-label" class="ev-img" src="" style="max-height:200px;"
-                        onerror="this.style.display='none'; document.getElementById('m-label-na').style.display='block'">
-                    <div id="m-label-na" class="ev-unavailable" style="display:none;">REFERENCE UNAVAILABLE</div>
-                </div>
-            </div>
-
-            <!-- Right: analysis -->
-            <div class="modal-analysis">
-
-                <div>
-                    <div class="an-section-title">ANALYSIS RESULT</div>
-                    <div class="an-row">
-                        <span class="an-key">Status</span>
-                        <span id="m-status" class="an-status status-no-change">—</span>
-                    </div>
-                    <div class="an-row"><span class="an-key">Changed area</span><span class="an-val" id="m-area">—</span></div>
-                    <div class="an-row"><span class="an-key">Detected regions</span><span class="an-val" id="m-regions">—</span></div>
-                    <div class="an-row"><span class="an-key">Largest region</span><span class="an-val" id="m-largest">—</span></div>
-                    <div class="an-row"><span class="an-key">Alignment</span><span class="an-val" id="m-alignment">—</span></div>
-                    <div class="an-row"><span class="an-key">Method</span><span class="an-val" id="m-method" style="color:var(--text-muted);font-size:10px;">—</span></div>
-                </div>
-
-                <div>
-                    <div class="an-section-title">SUMMARY</div>
-                    <div class="an-summary-text" id="m-summary">—</div>
-                </div>
-
-                <div>
-                    <div class="an-section-title">POTENTIAL CONFOUNDERS</div>
-                    <div id="m-confounders" style="display:flex;flex-direction:column;gap:3px;">—</div>
-                </div>
-
-                <div>
-                    <div class="an-section-title">FALSE-ALARM REDUCTION</div>
-                    <div class="fa-reduction-big" style="font-size:22px;">63.47%</div>
-                    <div class="fa-reduction-label">V1 → V2 pixel reduction (pilot)</div>
-                    <div style="margin-top:8px;">
-                        <div class="fa-row"><span>V1 false positives</span><span style="color:var(--red);font-family:var(--mono);">1,099,177 px</span></div>
-                        <div class="fa-row"><span>V2 false positives</span><span class="v2" style="font-family:var(--mono);">401,555 px</span></div>
-                        <div class="fa-row"><span>F1 Score</span><span style="font-family:var(--mono);color:var(--text-secondary);">0.062 → 0.200</span></div>
-                        <div class="fa-row"><span>IoU</span><span style="font-family:var(--mono);color:var(--text-secondary);">0.032 → 0.111</span></div>
-                    </div>
-                    <div class="pilot-note">20-pair pilot result. Not a calibrated operational benchmark.</div>
-                </div>
-
-                <div style="margin-top:auto;padding-top:10px;border-top:1px solid var(--border);">
-                    <div style="font-size:9.5px;color:var(--text-muted);line-height:1.6;" id="m-disclaimer"></div>
-                </div>
-
-            </div>
-        </div>
     </div>
-</div>
 
-<script>
-    // ── State ────────────────────────────────────────────────────────────────
-    let currentDataset = 's2looking';
-    let currentPairs   = [];
+    <!-- TIMELINE -->
+    <footer class="timeline-area">
+        <div class="tl-track" id="timeline-track">
+            <div class="tl-node"><div class="tl-label">T1</div></div>
+            <div class="tl-line"></div>
+            <div class="tl-node"><div class="tl-label">T2</div></div>
+        </div>
+    </footer>
+    
+    <!-- Hidden Canvas for Mask Analysis -->
+    <canvas id="hidden-cvs" style="display:none;"></canvas>
 
-    // ── Navigation ───────────────────────────────────────────────────────────
-    function nav(pageId) {
-        document.querySelectorAll('.nav-item[id^=nav-]').forEach(el => el.classList.remove('active'));
-        const navEl = document.getElementById('nav-' + pageId);
-        if (navEl) navEl.classList.add('active');
-        document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
-        document.getElementById('page-' + pageId).classList.add('active');
-        const titles = { search:'Semantic Search', analysis:'Temporal Analysis', system:'System' };
-        document.getElementById('topbar-title').textContent = (titles[pageId] || pageId) + ' — ' + datasetLabel();
-    }
-
-    function datasetLabel() {
-        return currentDataset === 's2looking_large' ? 'S2Looking 500' : 'S2Looking';
-    }
-
-    // ── Dataset switch ───────────────────────────────────────────────────────
-    function switchDataset(ds) {
-        currentDataset = ds;
-        document.getElementById('radio-' + (ds === 's2looking_large' ? 'large' : 's2looking')).checked = true;
-        document.querySelectorAll('.nav-item[id^=ds-]').forEach(el => el.classList.remove('active'));
-        const dsEl = document.getElementById('ds-' + ds);
-        if (dsEl) dsEl.classList.add('active');
-        const label  = ds === 's2looking_large' ? 'S2LOOKING LARGE (500 PAIRS)' : 'S2LOOKING DEMO (20 PAIRS)';
-        document.getElementById('topbar-dataset-badge').textContent = label;
-        document.getElementById('banner-dataset-title').textContent = 'SEARCHING: ' + label;
-        document.getElementById('topbar-title').textContent = 'Semantic Search — ' + datasetLabel();
-        // Clear results so stale data isn't shown
-        document.getElementById('searchResults').innerHTML = '<div class="empty-state"><div class="empty-state-icon">🛰</div><div class="empty-state-title">Dataset switched</div><div class="empty-state-sub">Enter a query to search the ' + datasetLabel() + ' index</div></div>';
-    }
-
-    // ── Search ───────────────────────────────────────────────────────────────
-    function setSearch(val) {
-        document.getElementById('searchInput').value = val;
-        executeSearch();
-    }
-
-    async function executeSearch() {
-        const q = document.getElementById('searchInput').value.trim();
-        if (!q) return;
-        const dataset = currentDataset;
-        const container = document.getElementById('searchResults');
-        container.innerHTML = '<div class="skeleton" style="height:200px;"></div>';
-
-        try {
-            const res  = await fetch('/search?q=' + encodeURIComponent(q) + '&k=12&dataset=' + dataset);
-            const data = await res.json();
-            currentPairs = data.results || [];
-            renderResults(data, q, dataset);
-        } catch (err) {
-            container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">⚠</div><div class="empty-state-title">Network error</div><div class="empty-state-sub">Could not reach the local server.</div></div>';
-        }
-    }
-
-    function qualityTag(q) {
-        if (!q) return '';
-        if (q === 'SEMANTIC_MATCH')   return '<span class="quality-tag quality-semantic">SEMANTIC MATCH</span>';
-        if (q === 'CLOSEST_AVAILABLE')return '<span class="quality-tag quality-closest">CLOSEST AVAILABLE</span>';
-        return '<span class="quality-tag quality-no-match">NO STRONG MATCH</span>';
-    }
-
-    function renderResults(data, q, dataset) {
-        const container = document.getElementById('searchResults');
-        if (data.no_match) {
-            container.innerHTML = `
-                <div class="no-match-box">
-                    <div class="no-match-icon">🛰️</div>
-                    <div class="no-match-title">No results found</div>
-                    <div class="no-match-sub">${data.no_match_reason || 'No matching scene in the local index.'}</div>
-                </div>`;
-            return;
+    <!-- ── SCRIPTS ──────────────────────────────────────────────────────── -->
+    <script>
+        let currentDataset = 's2looking';
+        let currentPairs = [];
+        let isDragging = false;
+        
+        function switchDataset(ds) {
+            currentDataset = ds;
+            document.getElementById('ds-badge').textContent = ds === 's2looking_large' ? 'S2Looking Benchmark' : 'S2Looking Demo';
+            executeSearch();
         }
 
-        const pairs = data.results || [];
-        if (!pairs.length) {
-            container.innerHTML = '<div class="no-match-box"><div class="no-match-title">No results</div></div>';
-            return;
+        async function executeSearch() {
+            const q = document.getElementById('searchInput').value.trim() || 'demo';
+            const container = document.getElementById('resultsList');
+            document.getElementById('res-count').innerHTML = `Searching...`;
+            container.innerHTML = '';
+
+            try {
+                let url = q === 'demo' ? '/s2looking-demo' : '/search?q=' + encodeURIComponent(q) + '&k=12&dataset=' + currentDataset;
+                const res = await fetch(url);
+                const data = await res.json();
+                currentPairs = data.results || [];
+                renderResults(data, q);
+            } catch (err) {
+                document.getElementById('res-count').textContent = 'Network error fetching results.';
+            }
         }
 
-        // Check if any result is CLOSEST_AVAILABLE to show the honesty banner
-        const hasClosest = pairs.some(p => p.match_quality === 'CLOSEST_AVAILABLE');
-        const hasMatch   = pairs.some(p => p.match_quality === 'SEMANTIC_MATCH');
+        function renderResults(data, q) {
+            const container = document.getElementById('resultsList');
+            const countEl = document.getElementById('res-count');
+            
+            if (data.no_match || !currentPairs.length) {
+                countEl.textContent = `0 results`;
+                return;
+            }
 
-        let html = '';
+            countEl.textContent = `${currentPairs.length} scenes found`;
+            let html = '';
 
-        // Results header
-        html += `<div class="results-header">
-            <div class="results-header-label">RETRIEVAL RESULTS — FAISS · REMOTECLIP</div>
-            <span class="results-meta">query: &quot;${q}&quot;</span>
-            <span class="results-meta">${pairs.length} pairs</span>
-        </div>`;
+            currentPairs.forEach(p => {
+                const bUrl = (p.before || {}).url || '';
+                const aUrl = (p.after || {}).url || '';
+                const split = p.split || 'demo';
+                const analyzeDataset = p.index === 's2looking_large' ? 's2looking_large' : 's2looking';
+                const labelUrl = p.label_url || `/s2looking/label/${split}/${p.pair_id}`;
 
-        // Honesty notice for weak queries
-        if (hasClosest && !hasMatch) {
-            html += `<div class="results-closest-notice">
-                ⚠ <strong>CLOSEST AVAILABLE SCENES</strong> — The S2Looking benchmark is optimised for building-change analysis and does not provide broad semantic coverage for this concept. Results shown are the nearest vectors in feature space.
-            </div>`;
-        } else if (hasClosest) {
-            html += `<div class="results-closest-notice" style="font-size:10.5px;">
-                Some results are labeled <strong>CLOSEST AVAILABLE</strong> — their similarity score is below the semantic relevance threshold (${data.dataset_label || ''}).
-            </div>`;
-        }
-
-        html += '<div class="result-grid">';
-        pairs.forEach(p => {
-            const sim   = typeof p.similarity === 'number' ? p.similarity.toFixed(4) : '—';
-            const mq    = p.match_quality || '';
-            const pid   = p.pair_id || '';
-            const bUrl  = (p.before || {}).url || '';
-            const aUrl  = (p.after  || {}).url || '';
-            const split = p.split  || 'demo';
-            const labelUrl = p.label_url || `/s2looking/label/${split}/${pid}`;
-            const analyzeDataset = p.index === 's2looking_large' ? 's2looking_large' : 's2looking';
-            const analyzeSplit   = split || 'demo';
-
-            html += `
-            <div class="r-card">
-                <div class="r-card-thumb-pair">
-                    <img src="${bUrl}" alt="Before" onerror="this.style.opacity=.15">
-                    <img src="${aUrl}" alt="After"  onerror="this.style.opacity=.15">
-                </div>
-                <div class="r-card-body">
-                    <div class="r-card-id">PAIR <strong>${pid}</strong></div>
-                    <div class="r-card-row">
-                        <span class="r-card-label">SIMILARITY</span>
-                        <span class="r-card-val">${sim}</span>
-                    </div>
-                    <div class="r-card-row">
-                        <span class="r-card-label">STATUS</span>
-                        ${qualityTag(mq)}
-                    </div>
-                    <div class="r-card-row">
-                        <span class="r-card-label">DATASET</span>
-                        <span class="r-card-val" style="font-size:9.5px;">S2LOOKING</span>
-                    </div>
-                    <div class="r-card-action">
-                        <button class="btn-analyze" onclick="openAnalysisModal(
-                            '${pid}', '${bUrl}', '${aUrl}',
-                            '${analyzeDataset}', '${pid}', '${analyzeSplit}', '${labelUrl}'
-                        )">⟶ ANALYZE CHANGE</button>
-                    </div>
-                </div>
-            </div>`;
-        });
-        html += '</div>';
-        container.innerHTML = html;
-    }
-
-    // ── Demo cases (default view) ────────────────────────────────────────────
-    async function loadDemoCases() {
-        const container = document.getElementById('searchResults');
-        container.innerHTML = '<div class="skeleton" style="height:200px;"></div>';
-        try {
-            const res  = await fetch('/s2looking-demo');
-            const data = await res.json();
-            const pairs = data.results || [];
-
-            let html = '<div class="results-header"><div class="results-header-label">CHANGE BENCHMARK — S2LOOKING DEMO CASES</div></div>';
-            html += '<div class="result-grid">';
-            pairs.forEach(loc => {
-                const pid = loc.pair_id;
                 html += `
-                <div class="r-card">
-                    <div class="r-card-thumb-pair">
-                        <img src="${loc.before.url}" alt="Before" onerror="this.style.opacity=.15">
-                        <img src="${loc.after.url}"  alt="After"  onerror="this.style.opacity=.15">
-                    </div>
-                    <div class="r-card-body">
-                        <div class="r-card-id">PAIR <strong>${pid}</strong></div>
-                        <div class="r-card-row">
-                            <span class="r-card-label">LOCATION</span>
-                            <span class="r-card-val" style="font-size:9.5px;">${loc.location_label}</span>
-                        </div>
-                        <div class="r-card-row">
-                            <span class="r-card-label">COORDS</span>
-                            <span class="r-card-val" style="font-size:9px;">${loc.demo_latitude}, ${loc.demo_longitude}</span>
-                        </div>
-                        <div class="r-card-row">
-                            <span></span>
-                            <span class="quality-tag quality-closest" style="font-size:9px;">SIMULATED GEOREFERENCE ⓘ</span>
-                        </div>
-                        <div class="r-card-action">
-                            <button class="btn-analyze" onclick="openAnalysisModal(
-                                '${pid}','${loc.before.url}','${loc.after.url}',
-                                's2looking','${pid}','demo','${loc.label_url}'
-                            )">⟶ ANALYZE CHANGE</button>
-                        </div>
+                <div class="r-item">
+                    <img src="${bUrl}" class="r-thumb" onerror="this.style.opacity=0.2">
+                    <div class="r-info">
+                        <div class="r-id">Scene ${p.pair_id}</div>
+                        <div class="r-ds">S2Looking</div>
+                        <button class="btn-analyze" onclick="openAnalysis('${p.pair_id}', '${bUrl}', '${aUrl}', '${analyzeDataset}', '${split}', '${labelUrl}')">Analyze →</button>
                     </div>
                 </div>`;
             });
-            html += '</div>';
             container.innerHTML = html;
-        } catch (e) {
-            container.innerHTML = '<div class="empty-state"><div class="empty-state-title">Error loading demo cases</div></div>';
         }
-    }
-
-    // ── Analysis modal ────────────────────────────────────────────────────────
-    async function openAnalysisModal(titleId, beforeUrl, afterUrl, dataset, pairId, split, labelUrl) {
-        // Set before/after immediately
-        document.getElementById('modal-pair-id').textContent = '• ' + titleId;
-        document.getElementById('modal-dataset-tag').textContent = dataset.toUpperCase();
-        document.getElementById('m-before').src  = beforeUrl;
-        document.getElementById('m-after').src   = afterUrl;
-
-        // Label image — use new safe endpoint
-        const labelEl  = document.getElementById('m-label');
-        const labelNaEl= document.getElementById('m-label-na');
-        labelEl.style.display = 'block';
-        labelNaEl.style.display = 'none';
-        if (labelUrl) {
-            labelEl.src = labelUrl;
-        } else {
-            labelEl.style.display = 'none';
-            labelNaEl.style.display = 'block';
+        
+        function toggleTool(id) {
+            const el = document.getElementById(id);
+            el.style.display = el.style.display === 'block' ? 'none' : 'block';
         }
 
-        // Reset change map
-        document.getElementById('m-change-loading').style.display = 'block';
-        document.getElementById('m-overlay').style.display = 'none';
-        document.getElementById('m-mask').style.display = 'none';
-        document.getElementById('m-overlay-na').style.display = 'none';
+        function setViewMode(mode) {
+            ['btn-t1', 'btn-t2', 'btn-overlay', 'btn-mask', 'btn-ref', 'btn-swipe'].forEach(id => {
+                const btn = document.getElementById(id);
+                if (btn) btn.classList.remove('active');
+            });
+            const activeBtn = document.getElementById('btn-' + mode);
+            if (activeBtn) activeBtn.classList.add('active');
+            
+            const vBefore = document.getElementById('v-before');
+            const vAfter = document.getElementById('v-after');
+            const vOverlay = document.getElementById('v-overlay');
+            const vMask = document.getElementById('v-mask');
+            const vLabel = document.getElementById('v-label');
+            const slider = document.getElementById('cmp-slider');
+            const clipLayer = document.getElementById('clip-layer');
 
-        // Reset metrics
-        ['m-status','m-area','m-regions','m-largest','m-alignment','m-method','m-summary','m-confounders'].forEach(id => {
-            document.getElementById(id).textContent = '…';
+            // Default opacities for overlays
+            vOverlay.style.opacity = 0.7;
+            vMask.style.opacity = 1.0;
+            vLabel.style.opacity = 1.0;
+            
+            vAfter.style.display = 'none';
+            vOverlay.style.display = 'none';
+            vMask.style.display = 'none';
+            vLabel.style.display = 'none';
+            
+            if (mode === 'swipe') {
+                vBefore.style.display = 'block';
+                vAfter.style.display = 'block';
+                slider.style.display = 'block';
+                if (clipLayer.style.clipPath === 'none' || !clipLayer.style.clipPath) {
+                    clipLayer.style.clipPath = `polygon(50% 0, 100% 0, 100% 100%, 50% 100%)`;
+                    slider.style.left = '50%';
+                }
+            } else {
+                slider.style.display = 'none';
+                clipLayer.style.clipPath = 'none';
+                vBefore.style.display = 'none';
+                
+                if (mode === 't1') vBefore.style.display = 'block';
+                else if (mode === 't2') vAfter.style.display = 'block';
+                else if (mode === 'overlay') { vAfter.style.display = 'block'; vOverlay.style.display = 'block'; }
+                else if (mode === 'mask') vMask.style.display = 'block';
+                else if (mode === 'reference') vLabel.style.display = 'block';
+            }
+        }
+
+        /* ── Analysis Engine ── */
+        async function openAnalysis(titleId, bUrl, aUrl, dataset, split, labelUrl) {
+            document.getElementById('globeCanvas').style.display = 'none';
+            document.getElementById('viewer-content').style.display = 'flex';
+            document.getElementById('right-panel').style.display = 'flex';
+            document.getElementById('timeline-track').style.visibility = 'visible';
+
+            // Setup base images
+            document.getElementById('v-before').src = bUrl;
+            document.getElementById('v-after').src = aUrl;
+            
+            // Hide overlays initially
+            document.getElementById('v-overlay').style.display = 'none';
+            document.getElementById('v-mask').style.display = 'none';
+            document.getElementById('v-label').src = labelUrl;
+            document.getElementById('v-label').style.display = 'none';
+            
+            setViewMode('swipe');
+            resetZoom();
+
+            document.getElementById('adj-brightness').value = 100;
+            document.getElementById('adj-contrast').value = 100;
+            document.getElementById('adj-gamma').value = 100;
+            updateDisplay();
+            
+            // Defaults
+            document.getElementById('rp-status').textContent = 'ANALYZING';
+            document.getElementById('rp-ref-status').textContent = '...';
+            document.getElementById('rp-ref-regions').textContent = '...';
+            document.getElementById('rp-summary').textContent = '...';
+            document.getElementById('rp-validation').innerHTML = 'Running verification pipeline...';
+            document.getElementById('rp-validation').className = 'alert-box';
+
+            let refRegions = 0;
+            let refHasChange = false;
+            let refAvailable = true;
+
+            // 1. Analyze Ground Truth
+            try {
+                refRegions = await countRegions(labelUrl);
+                refHasChange = refRegions > 0;
+                document.getElementById('rp-ref-status').textContent = refHasChange ? 'CHANGE PRESENT' : 'NO CHANGE';
+                document.getElementById('rp-ref-regions').textContent = refRegions;
+            } catch(e) {
+                refAvailable = false;
+                document.getElementById('rp-ref-status').textContent = 'UNAVAILABLE';
+                document.getElementById('rp-ref-regions').textContent = '—';
+            }
+
+            // 2. Run Detector
+            try {
+                const url = dataset === 's2looking_large' 
+                    ? `/analyze?dataset=s2looking_large&pair_id=${encodeURIComponent(titleId)}&split=${split || 'train'}`
+                    : `/analyze?dataset=s2looking&pair_id=${encodeURIComponent(titleId)}`;
+                    
+                const res = await fetch(url);
+                const data = await res.json();
+
+                if (data.status === 'ok') {
+                    const r = data.result;
+                    const detHasChange = r.detected_regions > 0;
+                    
+                    document.getElementById('rp-status').textContent = detHasChange ? 'CHANGE DETECTED' : 'NO SIGNIFICANT CHANGE';
+                    document.getElementById('rp-analyst-summary').textContent = `The detector identified ${r.detected_regions} localized areas of change.`;
+
+                    document.getElementById('rp-changed-pixels').textContent = r.changed_pixel_area;
+                    document.getElementById('rp-changed-area').textContent = r.changed_area_percent + '%';
+                    document.getElementById('rp-detected-regions').textContent = r.detected_regions;
+                    document.getElementById('rp-largest-area').textContent = r.max_region_pct + '%';
+                    
+                    if (r.overlay_url) document.getElementById('v-overlay').src = r.overlay_url + '?t=' + Date.now();
+                    if (r.mask_url) document.getElementById('v-mask').src = r.mask_url + '?t=' + Date.now();
+                    
+                    // 3. Validation Logic
+                    let valHtml = '';
+                    let valClass = 'alert-box';
+                    let sumText = '';
+                    
+                    if (!refAvailable) {
+                        valHtml = `<strong>NOT VALIDATED</strong>`;
+                        sumText = `Reference annotation is unavailable. Cannot validate detector results.`;
+                    } else {
+                        if (detHasChange && refHasChange) {
+                            valHtml = `<strong>CHANGE AGREEMENT</strong>`;
+                            sumText = `${r.detected_regions} change region(s) identified in agreement with reference.`;
+                        } else if (!detHasChange && !refHasChange) {
+                            valHtml = `<strong>NO-CHANGE AGREEMENT</strong>`;
+                            sumText = `No detector-positive regions found, matching reference.`;
+                        } else if (!detHasChange && refHasChange) {
+                            valHtml = `<strong>⚠ DETECTOR MISS</strong>`;
+                            valClass += ' warning';
+                            sumText = `Reference annotation contains change, but the detector reported no significant change.`;
+                        } else if (detHasChange && !refHasChange) {
+                            valHtml = `<strong>⚠ FALSE POSITIVE</strong>`;
+                            valClass += ' warning';
+                            sumText = `Detector flagged change, but the reference contains none.`;
+                        }
+                    }
+                    
+                    document.getElementById('rp-validation').innerHTML = valHtml;
+                    document.getElementById('rp-validation').className = valClass;
+                    document.getElementById('rp-summary').textContent = sumText;
+
+                }
+            } catch (e) {
+                document.getElementById('rp-validation').textContent = 'Analysis failed.';
+            }
+        }
+
+        function countRegions(srcUrl) {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.crossOrigin = "Anonymous";
+                img.onload = () => {
+                    const cvs = document.getElementById('hidden-cvs');
+                    const ctx = cvs.getContext('2d', { willReadFrequently: true });
+                    cvs.width = img.width; cvs.height = img.height;
+                    ctx.drawImage(img, 0, 0);
+                    
+                    const imgData = ctx.getImageData(0,0,cvs.width,cvs.height);
+                    const data = imgData.data;
+                    const w = cvs.width, h = cvs.height;
+                    
+                    let labels = new Int32Array(w * h);
+                    let nextLabel = 1;
+                    let equiv = [0];
+                    
+                    for(let y=0; y<h; y++) {
+                        for(let x=0; x<w; x++) {
+                            const idx = (y*w + x)*4;
+                            // Check red channel > 128
+                            if(data[idx] > 128) {
+                                let left = (x > 0) ? labels[y*w + (x-1)] : 0;
+                                let up = (y > 0) ? labels[(y-1)*w + x] : 0;
+                                
+                                if(left === 0 && up === 0) {
+                                    labels[y*w + x] = nextLabel;
+                                    equiv[nextLabel] = nextLabel;
+                                    nextLabel++;
+                                } else if(left !== 0 && up === 0) {
+                                    labels[y*w + x] = left;
+                                } else if(left === 0 && up !== 0) {
+                                    labels[y*w + x] = up;
+                                } else {
+                                    labels[y*w + x] = left;
+                                    let rL = left; while(equiv[rL] !== rL) rL = equiv[rL];
+                                    let rU = up; while(equiv[rU] !== rU) rU = equiv[rU];
+                                    if(rL !== rU) equiv[rU] = rL;
+                                }
+                            }
+                        }
+                    }
+                    
+                    let finalLabels = new Set();
+                    for(let i=1; i<nextLabel; i++) {
+                        let root = i;
+                        while(equiv[root] !== root) root = equiv[root];
+                        if(root !== 0) finalLabels.add(root);
+                    }
+                    resolve(finalLabels.size);
+                };
+                img.onerror = () => reject();
+                img.src = srcUrl;
+            });
+        }
+
+        function closeAnalysis() {
+            document.getElementById('globeCanvas').style.display = 'block';
+            document.getElementById('viewer-content').style.display = 'none';
+            document.getElementById('right-panel').style.display = 'none';
+            document.getElementById('timeline-track').style.visibility = 'hidden';
+            document.getElementById('layers-panel').style.display = 'none';
+            document.getElementById('enhance-panel').style.display = 'none';
+        }
+
+        /* ── Swipe Interaction ── */
+        const container = document.getElementById('cmp-container');
+        const clipLayer = document.getElementById('clip-layer');
+        const slider = document.getElementById('cmp-slider');
+
+        container.addEventListener('mousedown', () => isDragging = true);
+        window.addEventListener('mouseup', () => isDragging = false);
+        container.addEventListener('mousemove', (e) => {
+            if (!isDragging || document.getElementById('cmp-slider').style.display === 'none') return;
+            const rect = container.getBoundingClientRect();
+            let x = e.clientX - rect.left;
+            x = Math.max(0, Math.min(x, rect.width));
+            const pct = (x / rect.width) * 100;
+            clipLayer.style.clipPath = `polygon(${pct}% 0, 100% 0, 100% 100%, ${pct}% 100%)`;
+            slider.style.left = `${pct}%`;
         });
-        document.getElementById('m-status').className = 'an-status';
-        document.getElementById('m-disclaimer').textContent =
-            dataset === 'ssl4eo' ? 'Experimental — temporal analysis not benchmarked on SSL4EO.' : '';
 
-        document.getElementById('analysisModal').classList.add('open');
-
-        // Fetch analysis
-        try {
-            let url = '';
-            if (dataset === 's2looking_large') {
-                url = `/analyze?dataset=s2looking_large&pair_id=${encodeURIComponent(pairId)}&split=${split || 'train'}`;
-            } else if (dataset === 'ssl4eo') {
-                // not wired in this UI — kept for completeness
-                url = `/analyze?dataset=ssl4eo&pair_id=${encodeURIComponent(pairId)}`;
-            } else {
-                url = `/analyze?dataset=s2looking&pair_id=${encodeURIComponent(pairId)}`;
-            }
-            const res  = await fetch(url);
-            const data = await res.json();
-
-            document.getElementById('m-change-loading').style.display = 'none';
-
-            if (data.status === 'ok') {
-                const r = data.result;
-                // Summary
-                document.getElementById('m-summary').textContent = r.summary || '—';
-                document.getElementById('m-area').textContent = (r.changed_area_percent ?? '—') + '% (' + (r.changed_pixel_area ?? '—') + ' px)';
-                document.getElementById('m-regions').textContent = r.detected_regions ?? '—';
-
-                // Status chip
-                const statusEl = document.getElementById('m-status');
-                const status   = r.review_status || '—';
-                statusEl.textContent = status;
-                statusEl.className   = 'an-status ' +
-                    (status.includes('NO SIGNIFICANT') ? 'status-no-change' :
-                     status.includes('POSSIBLE')       ? 'status-possible'  : 'status-review');
-
-                // Confounders
-                const confEl = document.getElementById('m-confounders');
-                if (r.potential_confounders && r.potential_confounders.length > 0) {
-                    confEl.innerHTML = r.potential_confounders.map(c =>
-                        `<div class="an-confounder">• ${c}</div>`
-                    ).join('');
-                } else {
-                    confEl.innerHTML = '<div style="font-size:11px;color:var(--text-muted);">None detected by heuristics</div>';
-                }
-
-                // Overlay
-                if (r.overlay_url) {
-                    const overlayEl = document.getElementById('m-overlay');
-                    overlayEl.style.display = 'block';
-                    overlayEl.src = r.overlay_url + '?t=' + Date.now();
-                }
-            } else {
-                document.getElementById('m-summary').textContent = 'Analysis failed: ' + (data.error || 'Unknown error');
-            }
-        } catch (e) {
-            document.getElementById('m-change-loading').style.display = 'none';
-            document.getElementById('m-summary').textContent = 'Network error — ensure the local server is running.';
+        /* ── Layers & Zoom ── */
+        function updateLayers() {
+            const vA = document.getElementById('chk-after').checked;
+            const vO = document.getElementById('chk-overlay').checked;
+            const vM = document.getElementById('chk-mask').checked;
+            const vL = document.getElementById('chk-label').checked;
+            
+            document.getElementById('v-after').style.display = vA ? 'block' : 'none';
+            
+            const elO = document.getElementById('v-overlay');
+            elO.style.display = vO ? 'block' : 'none';
+            elO.style.opacity = document.getElementById('op-overlay').value / 100;
+            
+            const elM = document.getElementById('v-mask');
+            elM.style.display = vM ? 'block' : 'none';
+            elM.style.opacity = document.getElementById('op-mask').value / 100;
+            
+            const elL = document.getElementById('v-label');
+            elL.style.display = vL ? 'block' : 'none';
+            elL.style.opacity = document.getElementById('op-label').value / 100;
         }
-    }
 
-    function closeModal() {
-        document.getElementById('analysisModal').classList.remove('open');
-    }
-    document.getElementById('analysisModal').addEventListener('click', e => {
-        if (e.target === document.getElementById('analysisModal')) closeModal();
-    });
-
-    // ── Demo analysis (from Analysis page dropdown) ──────────────────────────
-    async function runDemoAnalysis() {
-        const pairId = document.getElementById('pairSelect').value;
-        if (!pairId) { alert('Select a temporal pair first.'); return; }
-
-        document.getElementById('ca-empty').style.display   = 'none';
-        document.getElementById('ca-loading').style.display = 'block';
-        document.getElementById('ca-results').style.display = 'none';
-
-        // Note: demo/after contains Image2 (BEFORE), demo/before contains Image1 (AFTER)
-        document.getElementById('ca-before').src = `/static/demo/after/${pairId}`;
-        document.getElementById('ca-after').src  = `/static/demo/before/${pairId}`;
-        document.getElementById('ca-overlay').style.display = 'block';
-        document.getElementById('ca-overlay-na').style.display = 'none';
-        // Reference label
-        const labelEl  = document.getElementById('ca-label');
-        const labelNaEl= document.getElementById('ca-label-na');
-        labelEl.style.display = 'block';
-        labelNaEl.style.display = 'none';
-        labelEl.src = `/s2looking/label/demo/${pairId}`;
-
-        try {
-            const res  = await fetch(`/analyze?dataset=s2looking&pair_id=${encodeURIComponent(pairId)}`);
-            const data = await res.json();
-
-            document.getElementById('ca-loading').style.display = 'none';
-            document.getElementById('ca-results').style.display = 'block';
-
-            if (data.status === 'ok') {
-                const r = data.result;
-                document.getElementById('ca-summary').textContent = r.summary || '—';
-                document.getElementById('ca-area').textContent    = (r.changed_area_percent ?? '—') + '%';
-                document.getElementById('ca-regions').textContent = r.detected_regions ?? '—';
-
-                const statusEl = document.getElementById('ca-status');
-                const status   = r.review_status || '—';
-                statusEl.textContent = status;
-                statusEl.style.color =
-                    status.includes('NO SIGNIFICANT') ? 'var(--green)' :
-                    status.includes('POSSIBLE')       ? 'var(--amber)' : 'var(--red)';
-
-                const confEl = document.getElementById('ca-confounders');
-                confEl.textContent = (r.potential_confounders && r.potential_confounders.length)
-                    ? r.potential_confounders.join(' · ')
-                    : 'None detected';
-
-                if (r.overlay_url) {
-                    const ov = document.getElementById('m-overlay');
-                    ov.style.display = 'block';
-                    ov.src = r.overlay_url + '?t=' + Date.now();
-                }
-                if (r.mask_url) {
-                    const mask = document.getElementById('m-mask');
-                    mask.style.display = 'block';
-                    mask.src = r.mask_url + '?t=' + Date.now();
-                }
-
-                document.getElementById('m-largest').textContent = (r.max_region_pct ?? '0') + '%';
-                document.getElementById('m-alignment').textContent = r.alignment_status || '—';
-                document.getElementById('m-method').textContent = r.analysis_method || '—';
-            } else {
-                document.getElementById('ca-summary').textContent = 'Error: ' + (data.error || '?');
+        let currentZoom = 1;
+        function zoomView(delta) {
+            currentZoom = Math.max(0.2, currentZoom + delta);
+            document.querySelectorAll('.img-layer').forEach(img => {
+                img.style.transform = `scale(${currentZoom})`;
+            });
+        }
+        function resetZoom() {
+            currentZoom = 1;
+            document.querySelectorAll('.img-layer').forEach(img => {
+                img.style.transform = `scale(1)`;
+            });
+            if (document.getElementById('cmp-slider').style.display !== 'none') {
+                clipLayer.style.clipPath = `polygon(50% 0, 100% 0, 100% 100%, 50% 100%)`;
+                slider.style.left = `50%`;
             }
-        } catch (e) {
-            document.getElementById('ca-loading').style.display = 'none';
-            document.getElementById('ca-results').style.display = 'block';
-            document.getElementById('ca-summary').textContent = 'Could not reach server.';
         }
-    }
 
-    // Navigate from search result to analysis page
-    function openAnalysisPage(pairId) {
-        nav('analysis');
-        document.getElementById('pairSelect').value = pairId;
-        runDemoAnalysis();
-    }
-
-    // ── Health check / sidebar status ────────────────────────────────────────
-    async function fetchHealth() {
-        try {
-            const res  = await fetch('/health');
-            const data = await res.json();
-
-            // Sidebar
-            setStatusRow('ss-model-dot','ss-model', data.model ? 'RemoteCLIP ' + data.model : '—', !!data.model);
-            setStatusRow('ss-idx-dot',  'ss-idx',   data.indexed    ? data.indexed    + ' vectors' : '—', data.indexed > 0);
-            setStatusRow('ss-large-dot','ss-large',  data.large_indexed ? data.large_indexed + ' vectors' : 'NOT LOADED', data.large_indexed > 0);
-
-            // System page
-            document.getElementById('sys-model').textContent     = data.model     ? 'RemoteCLIP ' + data.model : '—';
-            document.getElementById('sys-demo-idx').textContent  = data.indexed       ? data.indexed + ' vectors'       : '—';
-            document.getElementById('sys-large-idx').textContent = data.large_indexed ? data.large_indexed + ' vectors'  : 'Not loaded';
-            document.getElementById('sys-threshold').textContent = data.threshold !== undefined ? data.threshold : '—';
-        } catch (e) {
-            console.warn('Health check failed', e);
+        function updateDisplay() {
+            const b = document.getElementById('adj-brightness').value;
+            const c = document.getElementById('adj-contrast').value;
+            const g = document.getElementById('adj-gamma').value / 100;
+            
+            if (b == 100 && c == 100 && g == 1) {
+                document.getElementById('v-before').style.filter = 'none';
+                document.getElementById('v-after').style.filter = 'none';
+                return;
+            }
+            
+            const exponent = 1 / g;
+            const gammaTrans = document.getElementById('gamma-transfer');
+            if (gammaTrans) {
+                ['R','G','B'].forEach(ch => {
+                    const el = gammaTrans.querySelector('feFunc' + ch);
+                    if (el) el.setAttribute('exponent', exponent);
+                });
+            }
+            const filterStr = `url(#img-adjust) brightness(${b}%) contrast(${c}%)`;
+            document.getElementById('v-before').style.filter = filterStr;
+            document.getElementById('v-after').style.filter = filterStr;
         }
-    }
 
-    function setStatusRow(dotId, valId, text, ok) {
-        const dot = document.getElementById(dotId);
-        dot.style.background = ok ? 'var(--green)' : 'var(--amber)';
-        if (ok) dot.style.boxShadow = '0 0 5px var(--green)';
-        document.getElementById(valId).textContent = text;
-    }
-
-    // ── Init ─────────────────────────────────────────────────────────────────
-    document.addEventListener('DOMContentLoaded', () => {
-        fetchHealth();
-        loadDemoCases();
-        switchDataset('s2looking');  // default
-    });
-</script>
-
-<!-- 3D Globe (local, offline) -->
-<script src="/static/lib/three.min.js"></script>
-<script src="/static/globe.js"></script>
+        document.addEventListener('DOMContentLoaded', () => { executeSearch(); });
+    </script>
+    
+    <script src="/static/lib/three.min.js"></script>
+    <script src="/static/globe.js"></script>
 </body>
 </html>
