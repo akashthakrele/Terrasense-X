@@ -39,7 +39,7 @@
 
         body {
             font-family: var(--font-family);
-            background-color: var(--bg-dark);
+            background-color: #000;
             color: var(--text-primary);
             overflow: hidden;
             height: 100vh;
@@ -50,8 +50,10 @@
         /* Top Navbar */
         .top-navbar {
             height: var(--header-height);
-            background-color: var(--bg-panel);
-            border-bottom: 1px solid var(--border-subtle);
+            background-color: rgba(19, 23, 31, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(45, 53, 66, 0.6);
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -121,8 +123,10 @@
         /* Sidebar */
         .sidebar {
             width: var(--sidebar-width);
-            background-color: var(--bg-panel);
-            border-right: 1px solid var(--border-subtle);
+            background-color: rgba(19, 23, 31, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-right: 1px solid rgba(45, 53, 66, 0.6);
             display: flex;
             flex-direction: column;
             padding: 1.5rem 0;
@@ -179,7 +183,7 @@
         /* Main Content */
         .main-content {
             flex: 1;
-            background-color: var(--bg-dark);
+            background-color: transparent;
             overflow-y: auto;
             position: relative;
         }
@@ -639,15 +643,26 @@
             0% { background-position: 200% 0; }
             100% { background-position: -200% 0; }
         }
+        #globeCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            pointer-events: none; /* Pointer events handled by the body/document, drawn underneath */
+        }
     </style>
 </head>
 <body>
+    <canvas id="globeCanvas"></canvas>
     <div class="top-navbar">
         <div class="brand">
             <h1>Terrasense-X</h1>
             <span>Earth Intelligence • Offline AI</span>
         </div>
         <div class="top-right">
+            <div id="fpsCounter" style="font-size: 0.75rem; color: var(--accent-cyan); font-family: monospace; font-weight: 600;">60 FPS</div>
             <div class="mode-badge" id="offlineIndicator">OFFLINE MODE</div>
         </div>
     </div>
@@ -700,21 +715,12 @@
                 </div>
                 
                 <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem; line-height: 1.5;">
-                    Current semantic index: <strong style="color:var(--text-secondary)">40-image S2Looking demonstration subset.</strong>
+                    <strong style="color:var(--text-secondary)">LOCAL DEMO INDEX · S2LOOKING</strong><br>
                     Results are limited to scenes present in this local index. Queries for concepts not represented (e.g. solar panels, water, forest) will return a no-match notice.
                 </div>
 
-                <div style="margin-bottom: 2rem;">
-                    <div style="display: flex; gap: 1rem; margin-bottom: 1rem; border-bottom: 1px solid var(--border-subtle); padding-bottom: 1rem;">
-                        <label style="cursor: pointer; display: flex; align-items: center; gap: 0.5rem;">
-                            <input type="radio" name="dataset" value="ssl4eo" checked>
-                            <span style="font-weight: 500;">GEO SEARCH — SSL4EO</span>
-                        </label>
-                        <label style="cursor: pointer; display: flex; align-items: center; gap: 0.5rem; color: var(--text-secondary);">
-                            <input type="radio" name="dataset" value="s2looking">
-                            <span>CHANGE BENCHMARK — S2LOOKING</span>
-                        </label>
-                    </div>
+                <div style="display: none;">
+                    <input type="radio" name="dataset" value="s2looking" checked>
                 </div>
 
                 <div id="searchResults" class="results-list">
@@ -1066,6 +1072,7 @@
         let currentPairs = [];
         
         document.addEventListener('DOMContentLoaded', () => {
+            loadS2LookingDemo();
             document.querySelectorAll('input[name="dataset"]').forEach(radio => {
                 radio.addEventListener('change', (e) => {
                     if (e.target.value === 's2looking') {
@@ -1123,9 +1130,9 @@
 
                 if (data.no_match) {
                     container.innerHTML = `
-                        <div style="border: 1px solid var(--border-subtle); border-radius: 8px; padding: 2rem; text-align: center;">
-                            <div style="font-size: 1.3rem; margin-bottom: 0.5rem;">🛰️</div>
-                            <div style="color: var(--text-primary); font-weight: 600; margin-bottom: 0.5rem;">No Strong Semantic Match</div>
+                        <div style="border: 1px solid var(--border-subtle); border-radius: 8px; padding: 2.5rem; text-align: center;">
+                            <div style="font-size: 2rem; margin-bottom: 0.75rem;">🛰️</div>
+                            <div style="color: var(--text-primary); font-weight: 600; margin-bottom: 0.5rem; font-size: 1.05rem;">No matching scene in the local demonstration index.</div>
                             <div style="color: var(--text-secondary); font-size: 0.85rem; max-width: 480px; margin: 0 auto; line-height: 1.6;">${data.no_match_reason}</div>
                         </div>`;
                 } else if (currentPairs.length > 0) {
@@ -1174,9 +1181,40 @@
                         });
                         container.innerHTML = html;
                     } else {
-                        // S2Looking is now handled by loadS2LookingDemo() when radio button changes
-                        // But if executeSearch is manually triggered with s2looking selected, we load demo
-                        loadS2LookingDemo();
+                        // S2Looking: render FAISS results directly with real similarity scores
+                        let html = `<div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:0.75rem; letter-spacing:0.05em;">SEMANTIC RETRIEVAL — LOCAL DEMO INDEX · S2LOOKING — query: "${q}"</div>`;
+                        
+                        currentPairs.forEach((loc) => {
+                            const simScore = (typeof loc.similarity === 'number') ? loc.similarity.toFixed(4) : '—';
+                            html += `
+                                <div class="pair-card" style="background: var(--bg-panel); border: 1px solid var(--border-subtle); border-radius: 8px; overflow: hidden; margin-bottom: 1.5rem;">
+                                    <div style="padding: 0.75rem 1.25rem; background: var(--bg-elevated); border-bottom: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center;">
+                                        <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                            <span style="font-size: 0.75rem; color: var(--accent-cyan); font-weight: 700; letter-spacing: 0.08em;">PAIR ${loc.pair_id}</span>
+                                            <span style="font-size: 0.65rem; padding: 2px 8px; border-radius: 12px; background: rgba(47, 129, 247, 0.15); color: var(--accent-blue); border: 1px solid rgba(47,129,247,0.3); font-weight: 600;">FAISS · REMOTECLIP</span>
+                                        </div>
+                                        <div style="font-size: 0.8rem; color: var(--text-secondary);">
+                                            Similarity: <span style="color: var(--accent-cyan); font-family: monospace; font-weight: 700;">${simScore}</span>
+                                        </div>
+                                    </div>
+                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--border-subtle);">
+                                        <div style="background: #000; position: relative;">
+                                            <div style="position: absolute; top: 8px; left: 8px; background: rgba(0,0,0,0.75); color: #fff; padding: 3px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.05em; z-index: 2;">BEFORE — T1</div>
+                                            <img src="${loc.before.url}" style="width: 100%; height: 240px; object-fit: contain; display: block;" onerror="this.style.opacity=0.2">
+                                        </div>
+                                        <div style="background: #000; position: relative;">
+                                            <div style="position: absolute; top: 8px; left: 8px; background: rgba(0,229,255,0.15); color: var(--accent-cyan); padding: 3px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.05em; z-index: 2; border: 1px solid rgba(0,229,255,0.3);">AFTER — T2</div>
+                                            <img src="${loc.after.url}" style="width: 100%; height: 240px; object-fit: contain; display: block;" onerror="this.style.opacity=0.2">
+                                        </div>
+                                    </div>
+                                    <div style="padding: 0.75rem 1.25rem; display: flex; align-items: center; justify-content: space-between;">
+                                        <div style="font-size: 0.78rem; color: var(--text-muted);">S2Looking benchmark pair · temporal change available</div>
+                                        <button class="btn-view-change" onclick="openModal('${loc.pair_id}', '${loc.before.url}', '${loc.after.url}', 's2looking', '${loc.pair_id}', null, null, '/static/demo/label/${loc.pair_id}')">VIEW CHANGE ▸</button>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        container.innerHTML = html;
                     }
                 } else {
                     container.innerHTML = '<div style="color: var(--text-secondary); font-size: 0.9rem;">No matching pairs found.</div>';
@@ -1217,14 +1255,14 @@
                             </div>
                             
                             <div style="display: flex; gap: 1rem; padding-bottom: 0.5rem; margin-bottom: 1rem;">
-                                <div style="flex: 1;">
-                                    <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.25rem;">BEFORE (T1)</div>
-                                    <img src="${loc.before.url}" style="width: 100%; border-radius: 4px; border: 1px solid var(--border-subtle);">
-                                </div>
-                                <div style="flex: 1;">
-                                    <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.25rem;">AFTER (T2)</div>
-                                    <img src="${loc.after.url}" style="width: 100%; border-radius: 4px; border: 1px solid var(--border-subtle);">
-                                </div>
+                                        <div style="flex: 1;">
+                                            <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.25rem;">BEFORE (T1)</div>
+                                            <img src="${loc.before.url}" style="width: 100%; border-radius: 4px; border: 1px solid var(--border-subtle); object-fit: contain;">
+                                        </div>
+                                        <div style="flex: 1;">
+                                            <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.25rem;">AFTER (T2)</div>
+                                            <img src="${loc.after.url}" style="width: 100%; border-radius: 4px; border: 1px solid var(--border-subtle); object-fit: contain;">
+                                        </div>
                             </div>
                             
                             <div style="border-top: 1px solid var(--border-subtle); padding-top: 1rem; display: flex; align-items: center; justify-content: space-between;">
@@ -1443,5 +1481,8 @@
             fetchHealth();
         });
     </script>
+    <!-- 3D Globe Scripts -->
+    <script src="/static/lib/three.min.js"></script>
+    <script src="/static/globe.js"></script>
 </body>
 </html>

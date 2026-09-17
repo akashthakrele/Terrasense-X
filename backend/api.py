@@ -3,15 +3,52 @@ import faiss
 from fastapi import APIRouter, Query
 from fastapi.responses import JSONResponse
 import config as cfg
-from backend.ml.search import text_search
+from backend.ml.search import text_search, text_search_large
 
 router = APIRouter()
 
 @router.get("/search")
 def search(q: str = Query(..., description="Text query"), k: int = Query(10, le=50), dataset: str = Query("ssl4eo")):
+
+    # ── s2looking_large: uses separate function with pair-level dedup ────────
+    if dataset == 's2looking_large':
+        pairs = text_search_large(q, k_pairs=k, dataset='s2looking_large')
+
+        RELEVANCE_THRESHOLD = 0.20
+        no_match = (not pairs or pairs[0]["score"] < RELEVANCE_THRESHOLD)
+
+        results = []
+        for p in pairs:
+            results.append({
+                "pair_id":     p["pair_id"],
+                "similarity":  p["score"],
+                "split":       p.get("split", ""),
+                "before": {
+                    "filename": p["pair_id"],
+                    "path":     p.get("before_path", ""),
+                    "url":      f"/static/s2looking_large/before/{p['pair_id']}"
+                },
+                "after": {
+                    "filename": p["pair_id"],
+                    "path":     p.get("after_path", ""),
+                    "url":      f"/static/s2looking_large/after/{p['pair_id']}"
+                },
+                "label_path":  p.get("label_path", ""),
+                "is_curated":  False,
+                "index":       "s2looking_large"
+            })
+
+        return JSONResponse({
+            "query":          q,
+            "no_match":       no_match,
+            "no_match_reason": "No matching scene in the large S2Looking index." if no_match else None,
+            "results":        results if not no_match else []
+        })
+
     raw_results = text_search(q, k, dataset)
     
     if dataset == 's2looking':
+        # Pure FAISS retrieval — no hardcoded mappings
         pairs = {}
         for res in raw_results:
             fname = res["filename"]
@@ -27,16 +64,19 @@ def search(q: str = Query(..., description="Text query"), k: int = Query(10, le=
                         "filename": fname,
                         "url": f"/static/demo/after/{fname}"
                     },
-                    "similarity": score
+                    "similarity": score,
+                    "is_curated": False
                 }
             else:
                 if score > pairs[fname]["similarity"]:
                     pairs[fname]["similarity"] = score
-                    
+
         grouped_results = list(pairs.values())
         grouped_results.sort(key=lambda x: x["similarity"], reverse=True)
 
-        RELEVANCE_THRESHOLD = 0.29
+        # Threshold calibrated from observed score distribution (0.26-0.30 range).
+        # 0.24 allows real FAISS hits through while filtering noise.
+        RELEVANCE_THRESHOLD = 0.24
         no_match = False
         if not grouped_results or grouped_results[0]["similarity"] < RELEVANCE_THRESHOLD:
             no_match = True
@@ -45,8 +85,7 @@ def search(q: str = Query(..., description="Text query"), k: int = Query(10, le=
             "query": q,
             "no_match": no_match,
             "no_match_reason": (
-                "No strong semantic match found in the current local demo index. "
-                "The 40-image S2Looking subset may not contain this concept."
+                "No matching scene in the local demonstration index."
             ) if no_match else None,
             "results": grouped_results if not no_match else []
         })
