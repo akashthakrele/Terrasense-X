@@ -3,997 +3,1377 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Terrasense-X GIS Workstation</title>
-    <meta name="description" content="Offline geospatial software workstation for satellite imagery analysis.">
+    <title>Terrasense-X — Offline Earth Observation Workstation</title>
+    <meta name="description" content="Professional offline satellite imagery analysis workstation for change detection and temporal comparison.">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet">
+
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+    tailwind.config = {
+        darkMode: 'class',
+        theme: {
+            extend: {
+                colors: {
+                    'primary':                  '#006194',
+                    'on-primary':               '#ffffff',
+                    'primary-container':        '#007bb9',
+                    'on-primary-container':     '#fdfcff',
+                    'primary-fixed':            '#cce5ff',
+                    'primary-fixed-dim':        '#93ccff',
+                    'on-primary-fixed':         '#001d31',
+                    'on-primary-fixed-variant': '#004b73',
+                    'secondary':                '#006c49',
+                    'on-secondary':             '#ffffff',
+                    'secondary-container':      '#6cf8bb',
+                    'on-secondary-container':   '#00714d',
+                    'secondary-fixed':          '#6ffbbe',
+                    'secondary-fixed-dim':      '#4edea3',
+                    'on-secondary-fixed':       '#002113',
+                    'on-secondary-fixed-variant':'#005236',
+                    'tertiary':                 '#b61722',
+                    'on-tertiary':              '#ffffff',
+                    'tertiary-container':       '#da3437',
+                    'on-tertiary-container':    '#fffbff',
+                    'tertiary-fixed':           '#ffdad7',
+                    'tertiary-fixed-dim':       '#ffb3ad',
+                    'on-tertiary-fixed':        '#410004',
+                    'on-tertiary-fixed-variant':'#930013',
+                    'error':                    '#ba1a1a',
+                    'on-error':                 '#ffffff',
+                    'error-container':          '#ffdad6',
+                    'on-error-container':       '#93000a',
+                    'surface':                  '#f8f9ff',
+                    'surface-bright':           '#f8f9ff',
+                    'surface-dim':              '#cbdbf5',
+                    'surface-container-lowest': '#ffffff',
+                    'surface-container-low':    '#eff4ff',
+                    'surface-container':        '#e5eeff',
+                    'surface-container-high':   '#dce9ff',
+                    'surface-container-highest':'#d3e4fe',
+                    'surface-variant':          '#d3e4fe',
+                    'surface-tint':             '#006398',
+                    'on-surface':               '#0b1c30',
+                    'on-surface-variant':       '#3f4850',
+                    'background':               '#f8f9ff',
+                    'on-background':            '#0b1c30',
+                    'outline':                  '#707881',
+                    'outline-variant':          '#bfc7d2',
+                    'inverse-surface':          '#213145',
+                    'inverse-on-surface':       '#eaf1ff',
+                    'inverse-primary':          '#93ccff',
+                },
+                fontFamily: {
+                    'inter': ['Inter', 'sans-serif'],
+                    'mono':  ['JetBrains Mono', 'monospace'],
+                },
+                fontSize: {
+                    'label-sm':  ['10px', { lineHeight: '14px', letterSpacing: '0.04em', fontWeight: '500' }],
+                    'label-md':  ['12px', { lineHeight: '16px', fontWeight: '500' }],
+                    'label-lg':  ['14px', { lineHeight: '18px', letterSpacing: '-0.01em', fontWeight: '500' }],
+                    'ui-label':  ['11px', { lineHeight: '14px', letterSpacing: '0.05em', fontWeight: '600' }],
+                    'body-sm':   ['12px', { lineHeight: '16px', fontWeight: '400' }],
+                    'body-md':   ['14px', { lineHeight: '20px', fontWeight: '400' }],
+                    'body-lg':   ['16px', { lineHeight: '24px', fontWeight: '400' }],
+                    'head-sm':   ['18px', { lineHeight: '24px', letterSpacing: '-0.01em', fontWeight: '600' }],
+                    'head-md':   ['22px', { lineHeight: '28px', letterSpacing: '-0.015em', fontWeight: '600' }],
+                },
+                borderRadius: {
+                    DEFAULT: '0.125rem',
+                    'lg': '0.25rem',
+                    'xl': '0.5rem',
+                    'full': '9999px',
+                },
+            },
+        },
+    };
+    </script>
+
     <style>
-        :root {
-            --bg-base:       #F5F6F7;
-            --bg-panel:      #FFFFFF;
-            --bg-input:      #F5F6F7;
-            --border:        #D5D9DE;
-            --border-bright: #A0AAB2;
-            
-            --text-primary:  #20262D;
-            --text-secondary:#68737D;
-            --text-muted:    #A0AAB2;
-            
-            --cyan:          #3B82F6;
-            --cyan-dim:      #EBF4FF;
-            
-            --green:         #10B981;
-            --green-dim:     #ECFDF5;
-            
-            --amber:         #F59E0B;
-            --amber-dim:     #FFFBEB;
-            
-            --red:           #EF4444;
-            --red-dim:       #FEF2F2;
-
-            --topbar-h:      40px;
-            --timeline-h:    48px;
-            --left-w:        320px;
-            --right-w:       320px;
-            
-            --sys-font: 'Segoe UI', Arial, sans-serif;
-        }
-
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        
+        html, body { height: 100%; overflow: hidden; }
         body {
-            font-family: var(--sys-font);
-            background: var(--bg-base);
-            color: var(--text-primary);
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            font-size: 13px;
-            line-height: 1.5;
+            font-family: 'Inter', sans-serif;
+            background: #f8f9ff;
+            color: #0b1c30;
         }
+        /* Material Icons */
+        .material-symbols-outlined {
+            font-family: 'Material Symbols Outlined';
+            font-weight: normal;
+            font-style: normal;
+            font-size: 20px;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+            vertical-align: middle;
+            user-select: none;
+        }
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #bfc7d2; border-radius: 4px; }
 
-        /* ── Top Bar ────────────────────────────────────────────────────── */
-        .topbar {
-            height: var(--topbar-h);
-            background: var(--bg-panel);
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            padding: 0 16px;
-            justify-content: space-between;
-            flex-shrink: 0;
-            z-index: 50;
-        }
-        .tb-left { display: flex; align-items: center; gap: 24px; }
-        .tb-brand { font-size: 14px; font-weight: 600; color: var(--text-primary); }
-        .tb-search {
-            display: flex;
-            align-items: center;
-            background: var(--bg-input);
-            border: 1px solid var(--border);
-            border-radius: 2px;
-            padding: 2px 8px;
-            width: 300px;
-        }
-        .tb-search input {
-            background: transparent;
-            border: none;
-            color: var(--text-primary);
-            font-size: 13px;
-            padding: 4px;
-            width: 100%;
-            outline: none;
-        }
-        .tb-right { display: flex; align-items: center; gap: 16px; font-size: 12px; color: var(--text-secondary); }
-
-        /* ── App Body ────────────────────────────────────────────────────── */
-        .app-body {
-            flex: 1;
-            display: flex;
+        /* === COMPARE VIEWER SPECIFICS === */
+        #cmp-container {
             position: relative;
-            overflow: hidden;
-        }
-
-        /* ── Left Catalog ────────────────────────────────────────────────── */
-        .left-panel {
-            width: var(--left-w);
-            background: var(--bg-panel);
-            border-right: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            z-index: 20;
-        }
-        .lp-header {
-            padding: 12px 16px;
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--text-secondary);
-            border-bottom: 1px solid var(--border);
-            background: var(--bg-base);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-        .lp-content {
             flex: 1;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-        }
-        .lp-section {
-            padding: 16px;
-            border-bottom: 1px solid var(--border);
-        }
-        .lp-section-title {
-            font-size: 12px;
-            font-weight: 600;
-            margin-bottom: 8px;
-            color: var(--text-primary);
-        }
-        select.form-sel {
-            width: 100%;
-            background: var(--bg-panel);
-            border: 1px solid var(--border);
-            color: var(--text-primary);
-            padding: 6px 8px;
-            font-size: 13px;
-            border-radius: 2px;
-            outline: none;
-        }
-        select.form-sel:focus { border-color: var(--cyan); }
-        
-        .r-item {
-            display: flex;
-            padding: 12px 16px;
-            border-bottom: 1px solid var(--border);
-            gap: 12px;
-        }
-        .r-thumb {
-            width: 60px;
-            height: 60px;
-            background: #E5E7EB;
-            border: 1px solid var(--border);
-            flex-shrink: 0;
-            object-fit: cover;
-        }
-        .r-info { flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
-        .r-id { font-size: 13px; font-weight: 600; color: var(--text-primary); }
-        .r-ds { font-size: 12px; color: var(--text-secondary); }
-        .btn-analyze {
-            align-self: flex-start;
-            background: transparent;
-            border: none;
-            color: var(--cyan);
-            font-size: 12px;
-            cursor: pointer;
-            padding: 0;
-            margin-top: 4px;
-            font-weight: 500;
-        }
-        .btn-analyze:hover { text-decoration: underline; }
-
-        /* ── Central Imagery Workspace ───────────────────────────────────── */
-        .viewer {
-            flex: 1;
-            position: relative;
-            background: #E5E7EB;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-        
-        #globeCanvas {
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            width: 100%; height: 100%;
-            z-index: 1;
-        }
-        
-        .viewer-content {
-            position: relative;
-            z-index: 5;
-            flex: 1;
-            display: none;
-            flex-direction: column;
-        }
-
-        .cmp-container {
-            flex: 1;
-            position: relative;
             overflow: hidden;
             cursor: crosshair;
+            background: #1a1a1a;
+            min-height: 0;
         }
-        
         .img-layer {
             position: absolute;
             top: 0; left: 0;
             width: 100%; height: 100%;
             object-fit: contain;
-            opacity: 1 !important;
-            mix-blend-mode: normal !important;
-            background: transparent;
             transform-origin: center;
         }
-        
         #clip-layer {
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
             clip-path: polygon(50% 0, 100% 0, 100% 100%, 50% 100%);
             pointer-events: none;
         }
-        
-        /* Thin neutral slider */
         .cmp-slider {
             position: absolute;
             top: 0; left: 50%;
             width: 2px;
             height: 100%;
-            background: var(--border-bright);
+            background: rgba(255,255,255,0.7);
             cursor: ew-resize;
-            z-index: 100;
+            z-index: 30;
+            transform: translateX(-50%);
         }
         .cmp-handle {
             position: absolute;
             top: 50%;
-            left: -8px;
-            width: 18px;
-            height: 30px;
-            background: #FFFFFF;
-            border: 1px solid var(--border-bright);
-            border-radius: 2px;
-            transform: translateY(-50%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-        .cmp-handle::after {
-            content: '||';
-            color: var(--text-secondary);
-            font-size: 10px;
-            font-weight: bold;
-            letter-spacing: -1px;
-        }
-        
-        .layer-labels {
-            position: absolute;
-            top: 16px; left: 16px; right: 16px;
-            display: flex;
-            justify-content: space-between;
-            pointer-events: none;
-            z-index: 90;
-        }
-        .img-lbl {
-            background: rgba(255,255,255,0.85);
-            border: 1px solid var(--border);
-            color: var(--text-primary);
-            padding: 4px 8px;
-            font-size: 12px;
-            font-weight: 600;
-            border-radius: 2px;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-        }
-
-        /* ── Viewer Toolbar ──────────────────────────────────────────────── */
-        .viewer-toolbar {
-            height: 48px;
-            background: var(--bg-panel);
-            border-top: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            padding: 0 16px;
-            gap: 16px;
-            flex-shrink: 0;
-            z-index: 101;
-        }
-        .vt-group {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            border-right: 1px solid var(--border);
-            padding-right: 16px;
-        }
-        .vt-group:last-child { border-right: none; }
-        
-        .vt-btn {
-            background: transparent;
-            border: 1px solid transparent;
-            color: var(--text-primary);
-            padding: 6px 12px;
-            font-size: 12px;
-            cursor: pointer;
-            border-radius: 2px;
-        }
-        .vt-btn:hover { background: var(--bg-input); }
-        .vt-btn.active { background: var(--bg-input); color: var(--text-primary); font-weight: 600; border: 1px solid var(--border); }
-        
-        /* Modals / Tools */
-        .tool-panel {
-            display: none;
-            position: absolute;
-            bottom: 60px;
-            background: var(--bg-panel);
-            border: 1px solid var(--border);
-            padding: 16px;
-            border-radius: 2px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            z-index: 100;
-            width: 320px;
-        }
-        .tp-header {
-            font-weight: 600;
-            margin-bottom: 12px;
-            padding-bottom: 8px;
-            border-bottom: 1px solid var(--border);
-        }
-        .tp-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 12px;
-            font-size: 12px;
-        }
-        .tp-row input[type="range"] { width: 140px; }
-
-        /* ── Right Inspector ─────────────────────────────────────────────── */
-        .right-panel {
-            width: var(--right-w);
-            background: var(--bg-panel);
-            border-left: 1px solid var(--border);
-            display: none; /* hidden until analysis */
-            flex-direction: column;
-            z-index: 20;
-            overflow-y: auto;
-        }
-        
-        .rp-header {
-            padding: 12px 16px;
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--text-secondary);
-            border-bottom: 1px solid var(--border);
-            background: var(--bg-base);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .rp-content { padding: 16px; display: block; }
-        .rp-section { margin-bottom: 24px; }
-        .rp-section-title {
-            font-size: 11px;
-            font-weight: 600;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 12px;
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 4px;
-        }
-
-        .kv-row {
-            display: flex;
-            justify-content: space-between;
-            font-size: 12px;
-            margin-bottom: 8px;
-        }
-        .kv-key { color: var(--text-secondary); }
-        .kv-val { color: var(--text-primary); font-weight: 500; text-align: right; }
-        
-        .alert-box {
-            background: var(--bg-input);
-            border: 1px solid var(--border);
-            padding: 12px;
-            font-size: 12px;
-            border-radius: 2px;
-            margin-top: 12px;
-            line-height: 1.5;
-            color: var(--text-primary);
-        }
-        .alert-box.warning { background: var(--red-dim); border-color: var(--red); color: var(--red); font-weight: 500; }
-        .alert-box.success { background: var(--green-dim); border-color: var(--green); color: var(--green); font-weight: 500; }
-
-        .analyst-summary {
-            font-size: 12px;
-            color: var(--text-primary);
-            line-height: 1.5;
-        }
-
-        /* ── Timeline ────────────────────────────────────────────────────── */
-        .timeline-area {
-            height: var(--timeline-h);
-            background: var(--bg-panel);
-            border-top: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            z-index: 50;
-        }
-        
-        .tl-track {
-            display: flex;
-            align-items: center;
-            width: 500px;
-            position: relative;
-            padding: 0 20px;
-            visibility: hidden;
-        }
-        .tl-line {
-            flex: 1;
-            height: 2px;
-            background: var(--border);
-        }
-        .tl-node {
-            width: 10px;
-            height: 10px;
+            left: 50%;
+            width: 32px;
+            height: 32px;
+            background: #ffffff;
             border-radius: 50%;
-            background: var(--text-primary);
-            position: relative;
-            z-index: 2;
+            transform: translate(-50%, -50%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+            color: #006194;
         }
-        .tl-label {
-            position: absolute;
-            top: 16px;
-            font-size: 11px;
+        /* Viewer mode toggle active */
+        .vm-btn-active {
+            background: #006194 !important;
+            color: #ffffff !important;
             font-weight: 600;
-            color: var(--text-primary);
-            transform: translateX(-50%);
-            white-space: nowrap;
         }
-        
+        /* Sidebar nav active */
+        .nav-active {
+            background: #007bb9;
+            color: #ffffff;
+            font-weight: 600;
+        }
+        /* Fade animation */
+        .view-panel { transition: opacity 0.15s ease; }
+        .view-panel.hidden { display: none; }
     </style>
 </head>
-<body>
+<body class="flex flex-col h-screen overflow-hidden bg-background font-inter text-on-surface">
 
-    <svg width="0" height="0" style="position:absolute; z-index:-1;">
-      <filter id="img-adjust" color-interpolation-filters="sRGB">
+<!-- ═══════════════════════════════════════════════
+     HIDDEN ANALYSIS UTILITIES
+═══════════════════════════════════════════════ -->
+<svg width="0" height="0" style="position:absolute;z-index:-1;">
+    <filter id="img-adjust" color-interpolation-filters="sRGB">
         <feComponentTransfer id="gamma-transfer">
-          <feFuncR type="gamma" amplitude="1" exponent="1" offset="0"/>
-          <feFuncG type="gamma" amplitude="1" exponent="1" offset="0"/>
-          <feFuncB type="gamma" amplitude="1" exponent="1" offset="0"/>
+            <feFuncR type="gamma" amplitude="1" exponent="1" offset="0"/>
+            <feFuncG type="gamma" amplitude="1" exponent="1" offset="0"/>
+            <feFuncB type="gamma" amplitude="1" exponent="1" offset="0"/>
         </feComponentTransfer>
-      </filter>
-    </svg>
+    </filter>
+</svg>
+<canvas id="hidden-cvs" style="display:none;"></canvas>
 
-    <!-- TOP BAR -->
-    <header class="topbar">
-        <div class="tb-left">
-            <div class="tb-brand">TERRASENSE-X</div>
-            <div class="tb-search">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--text-muted);"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                <input type="text" id="searchInput" placeholder="Search..." onkeydown="if(event.key==='Enter') executeSearch()">
-            </div>
+<!-- ═══════════════════════════════════════════════
+     TOP HEADER
+═══════════════════════════════════════════════ -->
+<header class="flex-shrink-0 h-14 bg-surface-container-lowest border-b border-outline-variant/40 flex items-center justify-between px-4 z-50 shadow-[0_1px_4px_rgba(11,28,48,0.05)]">
+    <!-- Left: Brand + Status -->
+    <div class="flex items-center gap-4">
+        <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-primary text-[22px]">satellite_alt</span>
+            <span class="font-semibold text-head-sm tracking-tight text-on-surface">Terrasense-X</span>
         </div>
-        <div class="tb-right">
-            <span>Dataset: <strong id="ds-badge">S2Looking</strong></span>
-            <span>Offline</span>
+        <div class="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-secondary-container/30 border border-secondary/20">
+            <span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+            <span class="font-mono text-label-sm text-secondary tracking-wide uppercase">OFFLINE READY · 42 SCENES</span>
         </div>
-    </header>
-
-    <div class="app-body">
-        
-        <!-- LEFT CATALOG -->
-        <aside class="left-panel">
-            <div class="lp-header">Catalog</div>
-            <div class="lp-content">
-                <div class="lp-section">
-                    <div class="lp-section-title">Collections</div>
-                    <select class="form-sel" id="datasetSelect" onchange="switchDataset(this.value)">
-                        <option value="s2looking">S2Looking Demo</option>
-                        <option value="s2looking_large">S2Looking Benchmark</option>
-                    </select>
-                </div>
-                <div class="lp-section" style="padding: 0; border: none;">
-                    <div class="lp-header" style="border-top: 1px solid var(--border);">Scenes</div>
-                    <div id="res-count" style="padding: 12px 16px; font-size: 12px; color: var(--text-secondary); border-bottom: 1px solid var(--border);"></div>
-                    <div id="resultsList"></div>
-                </div>
-            </div>
-        </aside>
-
-        <!-- CENTER WORKSPACE -->
-        <main class="viewer" id="main-viewer">
-            <canvas id="globeCanvas"></canvas>
-            
-            <div class="viewer-content" id="viewer-content">
-                
-                <div class="layer-labels">
-                    <div class="img-lbl" id="lbl-t1">T1 — BEFORE</div>
-                    <div class="img-lbl" id="lbl-t2">T2 — AFTER</div>
-                </div>
-
-                <!-- Swipe Comparison Container -->
-                <div class="cmp-container" id="cmp-container">
-                    <img id="v-before" class="img-layer" src="">
-                    
-                    <div id="clip-layer">
-                        <img id="v-after" class="img-layer" src="">
-                        <img id="v-overlay" class="img-layer" style="display:none;" src="">
-                        <img id="v-mask" class="img-layer" style="display:none;" src="">
-                        <img id="v-label" class="img-layer" style="display:none;" src="">
-                    </div>
-                    
-                    <div class="cmp-slider" id="cmp-slider">
-                        <div class="cmp-handle"></div>
-                    </div>
-                </div>
-
-                <!-- Viewer Toolbar -->
-                <div class="viewer-toolbar">
-                    <div class="vt-group">
-                        <button class="vt-btn" onclick="zoomView(-0.2)">Zoom −</button>
-                        <button class="vt-btn" onclick="zoomView(0.2)">Zoom +</button>
-                        <button class="vt-btn" onclick="resetZoom()">Fit</button>
-                    </div>
-                    
-                    <div class="vt-group">
-                        <button class="vt-btn" id="btn-t1" onclick="setViewMode('t1')">T1 — BEFORE</button>
-                        <button class="vt-btn" id="btn-t2" onclick="setViewMode('t2')">T2 — AFTER</button>
-                        <button class="vt-btn" id="btn-overlay" onclick="setViewMode('overlay')">CHANGE OVERLAY</button>
-                        <button class="vt-btn" id="btn-mask" onclick="setViewMode('mask')">CHANGE MASK</button>
-                        <button class="vt-btn" id="btn-ref" onclick="setViewMode('reference')">REFERENCE</button>
-                        <button class="vt-btn active" id="btn-swipe" onclick="setViewMode('swipe')">SPLIT / SWIPE</button>
-                    </div>
-                    
-                    <div class="vt-group">
-                        <button class="vt-btn" onclick="toggleTool('enhance-panel')">Enhance</button>
-                    </div>
-
-                    <button class="vt-btn" style="margin-left: auto; color: var(--text-primary);" onclick="closeAnalysis()">Close</button>
-                </div>
-                
-                <!-- HOW TO READ Legend -->
-                <div id="viewer-legend" style="position: absolute; bottom: 16px; left: 16px; background: rgba(10,12,16,0.9); padding: 12px; border: 1px solid var(--border); border-radius: 4px; font-size: 12px; color: var(--text-secondary); pointer-events: none; z-index: 100;">
-                    <strong style="color: var(--text-primary); margin-bottom: 4px; display: block;">HOW TO READ</strong>
-                    T1 — Earlier image<br>
-                    T2 — Later image<br>
-                    <span style="color: #ff3c00;">Red</span> — Change detected by the system<br>
-                    <span style="color: #ffffff;">White</span> — Changed pixels in the detector mask<br>
-                    <span style="color: #000000; background: #666; padding: 0 2px;">Black</span> — Unchanged pixels<br>
-                    Reference — S2LOOKING GROUND-TRUTH REFERENCE, when available
-                </div>
-
-                <!-- Enhance Panel -->
-                <div class="tool-panel" id="enhance-panel" style="left: 100px;">
-                    <div class="tp-header">Image Display</div>
-                    <div class="tp-row">
-                        <span>Brightness</span>
-                        <input type="range" id="adj-brightness" min="0" max="200" value="100" oninput="updateDisplay()">
-                    </div>
-                    <div class="tp-row">
-                        <span>Contrast</span>
-                        <input type="range" id="adj-contrast" min="0" max="200" value="100" oninput="updateDisplay()">
-                    </div>
-                    <div class="tp-row">
-                        <span>Gamma</span>
-                        <input type="range" id="adj-gamma" min="10" max="300" value="100" oninput="updateDisplay()">
-                    </div>
-                    <div class="tp-row" style="margin-top:16px;">
-                        <button class="vt-btn" onclick="document.getElementById('adj-brightness').value=100; document.getElementById('adj-contrast').value=100; document.getElementById('adj-gamma').value=100; updateDisplay();">Reset</button>
-                    </div>
-                </div>
-                
-            </div>
-        </main>
-        
-        <!-- RIGHT INSPECTOR (UNIFIED) -->
-        <aside class="right-panel" id="right-panel">
-            <div class="rp-header">Inspector</div>
-            
-            <div class="rp-content">
-                <div class="rp-section">
-                    <div class="rp-section-title">CHANGE ANALYSIS</div>
-                    <div id="rp-status" class="alert-box">—</div>
-                    <div id="rp-analyst-summary" style="margin-top: 8px; font-size: 13px; color: var(--text-secondary);">—</div>
-                </div>
-                
-                <div class="rp-section">
-                    <div class="rp-section-title">MEASUREMENTS</div>
-                    <div class="kv-row"><span class="kv-key">Changed pixels</span><span class="kv-val" id="rp-changed-pixels">—</span></div>
-                    <div class="kv-row"><span class="kv-key">Changed area</span><span class="kv-val" id="rp-changed-area">—</span></div>
-                    <div class="kv-row"><span class="kv-key">Detected regions</span><span class="kv-val" id="rp-detected-regions">—</span></div>
-                    <div class="kv-row"><span class="kv-key">Largest area</span><span class="kv-val" id="rp-largest-area">—</span></div>
-                </div>
-
-                <div class="rp-section">
-                    <div class="rp-section-title">VALIDATION</div>
-                    <div class="kv-row"><span class="kv-key">Reference</span><span class="kv-val" id="rp-ref-status">—</span></div>
-                    <div id="rp-validation" class="alert-box">—</div>
-                    <div class="kv-row" style="margin-top:12px;"><span class="kv-key">Ground-truth regions</span><span class="kv-val" id="rp-ref-regions">—</span></div>
-                </div>
-
-                <div class="rp-section">
-                    <div class="rp-section-title">ANALYST SUMMARY</div>
-                    <div class="analyst-summary" id="rp-summary">—</div>
-                </div>
-            </div>
-        </aside>
-
     </div>
 
-    <!-- TIMELINE -->
-    <footer class="timeline-area">
-        <div class="tl-track" id="timeline-track">
-            <div class="tl-node"><div class="tl-label">T1</div></div>
-            <div class="tl-line"></div>
-            <div class="tl-node"><div class="tl-label">T2</div></div>
+    <!-- Center: Global Search -->
+    <div class="flex-1 max-w-md mx-6">
+        <div class="relative flex items-center">
+            <span class="material-symbols-outlined absolute left-3 text-outline text-[18px]">search</span>
+            <input
+                type="text"
+                id="globalSearchInput"
+                placeholder="Scene ID, coordinates, description… (Enter)"
+                class="w-full h-9 pl-9 pr-4 bg-surface-container-low/70 border border-outline-variant/40 rounded-full font-inter text-body-sm text-on-surface placeholder:text-outline focus:outline-none focus:border-primary focus:bg-surface-container-lowest transition-colors"
+                onkeydown="if(event.key==='Enter'){document.getElementById('searchInput').value=this.value; showDiscover(); executeSearch();}"
+            >
         </div>
-    </footer>
-    
-    <!-- Hidden Canvas for Mask Analysis -->
-    <canvas id="hidden-cvs" style="display:none;"></canvas>
+    </div>
 
-    <!-- ── SCRIPTS ──────────────────────────────────────────────────────── -->
-    <script>
-        let currentDataset = 's2looking';
-        let currentPairs = [];
-        let isDragging = false;
-        
-        function switchDataset(ds) {
-            currentDataset = ds;
-            document.getElementById('ds-badge').textContent = ds === 's2looking_large' ? 'S2Looking Benchmark' : 'S2Looking Demo';
-            executeSearch();
-        }
+    <!-- Right: Controls -->
+    <div class="flex items-center gap-3">
+        <div class="hidden md:flex items-center gap-2 px-2.5 py-1 rounded bg-surface-container-low border border-outline-variant/30">
+            <span class="material-symbols-outlined text-outline text-[15px]">shield</span>
+            <span class="font-mono text-label-sm text-on-surface-variant">Institutional / Air-Gapped</span>
+        </div>
+        <button class="p-1.5 text-outline hover:text-on-surface hover:bg-surface-container-low rounded transition-colors" title="Help">
+            <span class="material-symbols-outlined text-[20px]">help_outline</span>
+        </button>
+        <div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
+            <span class="material-symbols-outlined text-on-primary text-[18px]">person</span>
+        </div>
+    </div>
+</header>
 
-        async function executeSearch() {
-            const q = document.getElementById('searchInput').value.trim() || 'demo';
-            const container = document.getElementById('resultsList');
-            document.getElementById('res-count').innerHTML = `Searching...`;
-            container.innerHTML = '';
+<!-- ═══════════════════════════════════════════════
+     APP BODY
+═══════════════════════════════════════════════ -->
+<div class="flex flex-1 min-h-0">
 
-            try {
-                let url = q === 'demo' ? '/s2looking-demo' : '/search?q=' + encodeURIComponent(q) + '&k=12&dataset=' + currentDataset;
-                const res = await fetch(url);
-                const data = await res.json();
-                currentPairs = data.results || [];
-                renderResults(data, q);
-            } catch (err) {
-                document.getElementById('res-count').textContent = 'Network error fetching results.';
-            }
-        }
+    <!-- ── LEFT SIDEBAR ──────────────────────────────── -->
+    <aside class="flex-shrink-0 w-56 bg-surface-container-lowest border-r border-outline-variant/30 flex flex-col z-40">
+        <nav class="flex-1 p-2 overflow-y-auto">
+            <!-- Workspace section -->
+            <div class="px-2 py-1.5 mb-1">
+                <span class="font-mono text-ui-label uppercase tracking-widest text-outline">Workspace</span>
+            </div>
+            <a href="#" id="nav-home" onclick="showHome(event)" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors font-inter text-body-md mb-0.5">
+                <span class="material-symbols-outlined text-[18px]">home</span>Home
+            </a>
+            <a href="#" id="nav-discover" onclick="showDiscover(event)" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors font-inter text-body-md mb-0.5">
+                <span class="material-symbols-outlined text-[18px]">travel_explore</span>Discover
+            </a>
+            <a href="#" id="nav-compare" onclick="showCompare(event)" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors font-inter text-body-md mb-0.5">
+                <span class="material-symbols-outlined text-[18px]">compare</span>Compare
+            </a>
+            <a href="#" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors font-inter text-body-md mb-0.5">
+                <span class="material-symbols-outlined text-[18px]">bar_chart</span>Reports
+            </a>
 
-        function renderResults(data, q) {
-            const container = document.getElementById('resultsList');
-            const countEl = document.getElementById('res-count');
-            
-            if (data.no_match || !currentPairs.length) {
-                countEl.textContent = `0 results`;
-                return;
-            }
+            <div class="border-t border-outline-variant/30 my-2"></div>
 
-            countEl.textContent = `${currentPairs.length} scenes found`;
-            let html = '';
+            <!-- Data section -->
+            <div class="px-2 py-1.5 mb-1">
+                <span class="font-mono text-ui-label uppercase tracking-widest text-outline">Data</span>
+            </div>
+            <a href="#" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors font-inter text-body-md mb-0.5">
+                <span class="material-symbols-outlined text-[18px]">photo_library</span>Local Imagery
+            </a>
+            <a href="#" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors font-inter text-body-md mb-0.5">
+                <span class="material-symbols-outlined text-[18px]">hard_drive</span>Offline Storage
+            </a>
 
-            currentPairs.forEach(p => {
-                const bUrl = (p.before || {}).url || '';
-                const aUrl = (p.after || {}).url || '';
-                const split = p.split || 'demo';
-                const analyzeDataset = p.index === 's2looking_large' ? 's2looking_large' : 's2looking';
-                const labelUrl = p.label_url || `/s2looking/label/${split}/${p.pair_id}`;
+            <div class="border-t border-outline-variant/30 my-2"></div>
 
-                html += `
-                <div class="r-item">
-                    <img src="${bUrl}" class="r-thumb" onerror="this.style.opacity=0.2">
-                    <div class="r-info">
-                        <div class="r-id">Scene ${p.pair_id}</div>
-                        <div class="r-ds">S2Looking</div>
-                        <button class="btn-analyze" onclick="openAnalysis('${p.pair_id}', '${bUrl}', '${aUrl}', '${analyzeDataset}', '${split}', '${labelUrl}')">Analyze →</button>
+            <a href="#" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors font-inter text-body-md">
+                <span class="material-symbols-outlined text-[18px]">settings</span>Settings
+            </a>
+        </nav>
+
+        <!-- Cache status footer -->
+        <div class="flex-shrink-0 p-3 border-t border-outline-variant/30 bg-surface-container-low/50">
+            <div class="flex items-center justify-between mb-1">
+                <span class="font-mono text-label-sm text-on-surface-variant uppercase">Cache Usage</span>
+                <span class="font-mono text-label-sm text-primary font-medium">28.7%</span>
+            </div>
+            <div class="w-full h-1 bg-surface-container-highest rounded-full overflow-hidden">
+                <div class="h-full bg-primary rounded-full" style="width:28.75%"></div>
+            </div>
+            <div class="flex items-center justify-between mt-1">
+                <span class="font-mono text-label-sm text-outline">18.4 / 64 GB</span>
+                <span class="font-mono text-label-sm text-outline">NVMe</span>
+            </div>
+        </div>
+    </aside>
+
+    <!-- ── MAIN CONTENT AREA ─────────────────────────── -->
+    <main class="flex-1 min-w-0 flex flex-col min-h-0 overflow-hidden">
+
+        <!-- ══════════════════════════════════════════════
+             HOME VIEW
+        ══════════════════════════════════════════════ -->
+        <div id="view-home" class="view-panel flex-1 overflow-y-auto p-6">
+            <!-- Context bar -->
+            <div class="flex items-center justify-between bg-surface-container-lowest px-5 py-3 rounded-xl shadow-sm mb-4">
+                <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-primary text-[20px]">space_dashboard</span>
+                    <span class="font-semibold text-head-sm tracking-tight text-on-surface">TERRASENSE-X WORKSPACE</span>
+                    <span class="w-1.5 h-1.5 rounded-full bg-outline-variant"></span>
+                    <span class="font-inter text-body-sm text-on-surface-variant">Search satellite imagery or start a change analysis session</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="flex items-center gap-1.5 bg-surface-container px-3 py-1 rounded font-mono text-label-sm">
+                        <span class="material-symbols-outlined text-primary text-[14px]">shield</span>
+                        <span class="text-on-surface-variant">SYSTEM:</span>
+                        <span class="text-on-surface font-semibold">Institutional / Air-Gapped</span>
                     </div>
-                </div>`;
-            });
-            container.innerHTML = html;
-        }
-        
-        function toggleTool(id) {
-            const el = document.getElementById(id);
-            el.style.display = el.style.display === 'block' ? 'none' : 'block';
-        }
+                    <div class="flex items-center gap-1.5 text-secondary bg-surface-container-low px-2 py-1 rounded font-mono text-label-sm">
+                        <span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+                        <span>v1.4.2 LOCAL ENGINE</span>
+                    </div>
+                </div>
+            </div>
 
-        function setViewMode(mode) {
-            ['btn-t1', 'btn-t2', 'btn-overlay', 'btn-mask', 'btn-ref', 'btn-swipe'].forEach(id => {
-                const btn = document.getElementById(id);
-                if (btn) btn.classList.remove('active');
-            });
-            const activeBtn = document.getElementById('btn-' + mode);
-            if (activeBtn) activeBtn.classList.add('active');
-            
-            const vBefore = document.getElementById('v-before');
-            const vAfter = document.getElementById('v-after');
-            const vOverlay = document.getElementById('v-overlay');
-            const vMask = document.getElementById('v-mask');
-            const vLabel = document.getElementById('v-label');
-            const slider = document.getElementById('cmp-slider');
-            const clipLayer = document.getElementById('clip-layer');
+            <!-- Search bar -->
+            <div class="bg-surface-container-lowest p-4 rounded-xl shadow-sm mb-4">
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="relative flex-1 flex items-center bg-surface-container-low rounded-lg px-3 py-2">
+                        <span class="material-symbols-outlined text-primary text-[20px] mr-2">satellite_alt</span>
+                        <input
+                            type="text"
+                            id="searchInput"
+                            placeholder="What are you looking for? (e.g., urban expansion, farmland, road construction…)"
+                            class="w-full bg-transparent font-inter text-body-md text-on-surface placeholder:text-outline focus:outline-none"
+                            onkeydown="if(event.key==='Enter') { showDiscover(); executeSearch(); }"
+                        >
+                    </div>
+                    <button onclick="showDiscover(); executeSearch();" class="flex items-center gap-2 bg-primary hover:bg-primary-container text-on-primary px-5 py-2.5 rounded-lg font-semibold text-ui-label tracking-wide transition-colors shadow-sm">
+                        <span class="material-symbols-outlined text-[16px]">travel_explore</span>
+                        SEARCH IMAGERY
+                    </button>
+                    <button onclick="document.getElementById('searchInput').value=''; showDiscover(); executeSearch();" class="flex items-center gap-2 bg-surface-container-low hover:bg-surface-container text-on-surface px-4 py-2.5 rounded-lg font-semibold text-ui-label tracking-wide transition-colors">
+                        <span class="material-symbols-outlined text-[16px]">play_circle</span>
+                        DEMO
+                    </button>
+                </div>
+                <div class="flex items-center gap-2 text-on-surface-variant">
+                    <span class="font-mono text-label-sm uppercase tracking-wider">Quick Filters:</span>
+                    <button onclick="document.getElementById('searchInput').value='farmland'; showDiscover(); executeSearch();" class="px-2.5 py-0.5 bg-surface-container-low hover:bg-surface-container text-on-surface font-mono text-label-sm rounded transition-colors">farmland</button>
+                    <button onclick="document.getElementById('searchInput').value='urban growth'; showDiscover(); executeSearch();" class="px-2.5 py-0.5 bg-surface-container-low hover:bg-surface-container text-on-surface font-mono text-label-sm rounded transition-colors">urban growth</button>
+                    <button onclick="document.getElementById('searchInput').value='roads'; showDiscover(); executeSearch();" class="px-2.5 py-0.5 bg-surface-container-low hover:bg-surface-container text-on-surface font-mono text-label-sm rounded transition-colors">roads</button>
+                    <button onclick="document.getElementById('searchInput').value='water bodies'; showDiscover(); executeSearch();" class="px-2.5 py-0.5 bg-surface-container-low hover:bg-surface-container text-on-surface font-mono text-label-sm rounded transition-colors">water bodies</button>
+                    <div class="flex-1"></div>
+                    <span class="font-mono text-label-sm text-secondary font-medium">● AIR-GAPPED VERIFIED</span>
+                </div>
+            </div>
 
-            // Default opacities for overlays
-            vOverlay.style.opacity = 0.7;
-            vMask.style.opacity = 1.0;
-            vLabel.style.opacity = 1.0;
-            
-            vAfter.style.display = 'none';
-            vOverlay.style.display = 'none';
-            vMask.style.display = 'none';
-            vLabel.style.display = 'none';
-            
-            if (mode === 'swipe') {
-                vBefore.style.display = 'block';
-                vAfter.style.display = 'block';
-                slider.style.display = 'block';
-                if (clipLayer.style.clipPath === 'none' || !clipLayer.style.clipPath) {
-                    clipLayer.style.clipPath = `polygon(50% 0, 100% 0, 100% 100%, 50% 100%)`;
-                    slider.style.left = '50%';
-                }
+            <!-- Quick Tools -->
+            <div class="grid grid-cols-3 gap-4 mb-4">
+                <div onclick="showDiscover(); executeSearch();" class="bg-surface-container-lowest p-4 rounded-xl shadow-sm hover:bg-surface-container-low transition-colors cursor-pointer group">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="font-mono text-label-sm uppercase tracking-wider text-primary font-medium">Tool 01 / Catalog</span>
+                        <span class="material-symbols-outlined text-primary text-[20px] group-hover:scale-110 transition-transform">travel_explore</span>
+                    </div>
+                    <h3 class="font-semibold text-head-sm text-on-surface mb-1">SEARCH IMAGERY</h3>
+                    <p class="font-inter text-body-sm text-on-surface-variant">Find relevant multispectral satellite scenes by natural description or coordinates.</p>
+                    <div class="mt-4 pt-3 border-t border-outline-variant/30 flex items-center justify-between">
+                        <span class="font-mono text-label-sm text-outline">Local archive: 42 scenes</span>
+                        <span class="font-semibold text-ui-label text-primary group-hover:translate-x-1 transition-transform">Open Search →</span>
+                    </div>
+                </div>
+                <div onclick="showCompare();" class="bg-surface-container-lowest p-4 rounded-xl shadow-sm hover:bg-surface-container-low transition-colors cursor-pointer group">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="font-mono text-label-sm uppercase tracking-wider text-primary font-medium">Tool 02 / Dual-Raster</span>
+                        <span class="material-symbols-outlined text-primary text-[20px] group-hover:scale-110 transition-transform">compare</span>
+                    </div>
+                    <h3 class="font-semibold text-head-sm text-on-surface mb-1">COMPARE SCENES</h3>
+                    <p class="font-inter text-body-sm text-on-surface-variant">Compare calibrated offline imagery passes across distinct acquisition dates with split view.</p>
+                    <div class="mt-4 pt-3 border-t border-outline-variant/30 flex items-center justify-between">
+                        <span class="font-mono text-label-sm text-outline">Sub-pixel raster sync</span>
+                        <span class="font-semibold text-ui-label text-primary group-hover:translate-x-1 transition-transform">Launch Compare →</span>
+                    </div>
+                </div>
+                <div class="bg-surface-container-lowest p-4 rounded-xl shadow-sm hover:bg-surface-container-low transition-colors cursor-pointer group">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="font-mono text-label-sm uppercase tracking-wider text-tertiary font-medium">Tool 03 / Difference Engine</span>
+                        <span class="material-symbols-outlined text-tertiary text-[20px] group-hover:scale-110 transition-transform">radar</span>
+                    </div>
+                    <h3 class="font-semibold text-head-sm text-on-surface mb-1">CHANGE ANALYSIS</h3>
+                    <p class="font-inter text-body-sm text-on-surface-variant">Detect meaningful structural differences across temporal passes using local edge networks.</p>
+                    <div class="mt-4 pt-3 border-t border-outline-variant/30 flex items-center justify-between">
+                        <span class="font-mono text-label-sm text-outline">Zero-GIS pipeline</span>
+                        <span class="font-semibold text-ui-label text-tertiary group-hover:translate-x-1 transition-transform">Start Analysis →</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lower section -->
+            <div class="grid grid-cols-12 gap-4">
+                <!-- Recent Scenes Table -->
+                <div class="col-span-7 bg-surface-container-lowest rounded-xl p-4 shadow-sm">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center gap-2">
+                            <span class="material-symbols-outlined text-primary text-[18px]">history</span>
+                            <h2 class="font-semibold text-head-sm text-on-surface">RECENT SCENES &amp; PASSES</h2>
+                        </div>
+                        <button onclick="showDiscover(); executeSearch();" class="flex items-center gap-1.5 px-3 py-1 bg-surface-container hover:bg-surface-container-high rounded font-mono text-label-sm text-on-surface transition-colors">
+                            <span class="material-symbols-outlined text-[15px]">folder_open</span>View All
+                        </button>
+                    </div>
+                    <!-- Table header -->
+                    <div class="grid grid-cols-12 px-2 py-1.5 font-mono text-label-sm text-on-surface-variant uppercase tracking-wider bg-surface-container-low rounded mb-1">
+                        <span class="col-span-2">Scene ID</span>
+                        <span class="col-span-4">Designation</span>
+                        <span class="col-span-3">Baseline / Target</span>
+                        <span class="col-span-2 text-center">Status</span>
+                        <span class="col-span-1 text-right">Action</span>
+                    </div>
+                    <!-- Rows from backend will be injected here -->
+                    <div id="home-recent-list">
+                        <!-- Placeholder rows -->
+                        <div class="grid grid-cols-12 items-center px-2 py-2.5 rounded hover:bg-surface-container-low transition-colors">
+                            <div class="col-span-2 flex items-center gap-1 font-mono text-label-md text-on-surface font-medium">
+                                <span class="material-symbols-outlined text-primary text-[14px]">grid_4x4</span><span>—</span>
+                            </div>
+                            <div class="col-span-4 font-inter text-body-md text-on-surface-variant">Loading scenes…</div>
+                            <div class="col-span-3"></div>
+                            <div class="col-span-2 text-center"></div>
+                            <div class="col-span-1"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- System Status -->
+                <div class="col-span-5 flex flex-col gap-4">
+                    <div class="bg-surface-container-lowest rounded-xl p-4 shadow-sm">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="font-semibold text-ui-label uppercase tracking-wider text-on-surface flex items-center gap-1.5">
+                                <span class="material-symbols-outlined text-secondary text-[16px]">verified</span>
+                                SYSTEM &amp; HARDWARE
+                            </span>
+                            <span class="font-mono text-label-sm text-secondary font-medium">100% OPERATIONAL</span>
+                        </div>
+                        <div class="flex flex-col gap-1.5 font-mono text-label-sm">
+                            <div class="flex items-center justify-between py-1 px-2 bg-surface-container-low rounded">
+                                <div class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-secondary"></span><span class="font-medium">Offline Engine:</span><span class="text-on-surface-variant">Active</span></div>
+                                <span class="text-secondary font-semibold">READY</span>
+                            </div>
+                            <div class="flex items-center justify-between py-1 px-2 bg-surface-container-low rounded">
+                                <div class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-secondary"></span><span class="font-medium">Local Models:</span><span class="text-on-surface-variant">Change Detector</span></div>
+                                <span class="text-secondary font-semibold">LOADED</span>
+                            </div>
+                            <div class="flex items-center justify-between py-1 px-2 bg-surface-container-low rounded">
+                                <div class="flex items-center gap-1.5"><span class="material-symbols-outlined text-primary text-[14px]">dataset</span><span class="font-medium">Benchmark:</span></div>
+                                <span class="text-on-surface">S2Looking Dataset</span>
+                            </div>
+                            <div class="flex items-center justify-between py-1 px-2 bg-surface-container-low rounded">
+                                <div class="flex items-center gap-1.5"><span class="material-symbols-outlined text-primary text-[14px]">memory</span><span class="font-medium">Hardware:</span></div>
+                                <span class="text-primary font-semibold">Local GPU Direct</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Dataset selector -->
+                    <div class="bg-surface-container-lowest rounded-xl p-4 shadow-sm">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="material-symbols-outlined text-primary text-[18px]">database</span>
+                            <span class="font-semibold text-ui-label uppercase tracking-wider text-on-surface">Dataset Collection</span>
+                        </div>
+                        <select id="datasetSelect" onchange="switchDataset(this.value)" class="w-full bg-surface-container-low border border-outline-variant/50 text-on-surface px-3 py-2 rounded-lg font-inter text-body-md focus:outline-none focus:border-primary transition-colors">
+                            <option value="s2looking">S2Looking Demo</option>
+                            <option value="s2looking_large">S2Looking Benchmark</option>
+                        </select>
+                        <div class="mt-2 flex items-center gap-1.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+                            <span class="font-mono text-label-sm text-on-surface-variant">Selected: <span id="ds-badge" class="text-primary font-medium">S2Looking</span></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══════════════════════════════════════════════
+             DISCOVER VIEW
+        ══════════════════════════════════════════════ -->
+        <div id="view-discover" class="view-panel hidden flex-1 overflow-y-auto p-5">
+            <!-- Header -->
+            <div class="flex items-start justify-between bg-surface-container-lowest p-4 rounded-xl shadow-sm mb-4">
+                <div>
+                    <div class="flex items-center gap-3 mb-1">
+                        <h1 class="font-semibold text-head-md text-on-surface tracking-tight">DISCOVER IMAGERY</h1>
+                        <span id="discover-count-badge" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-secondary-container/40 font-mono text-label-sm text-secondary">
+                            <span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+                            <span>42 Local Scenes · Offline Cache Active</span>
+                        </span>
+                    </div>
+                    <p class="font-inter text-body-md text-on-surface-variant">Find relevant satellite scenes to compare, extract footprints, and run delta detection.</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-container-low text-on-surface">
+                        <span class="material-symbols-outlined text-primary text-[17px]">hard_drive</span>
+                        <span class="font-mono text-label-sm text-on-surface-variant">NVMe FastStore:</span>
+                        <span class="font-mono text-label-sm font-semibold text-primary">18.4 GB ready</span>
+                    </div>
+                    <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface-container-low border border-outline-variant/30">
+                        <label class="font-mono text-label-sm text-on-surface-variant">Collection:</label>
+                        <select id="discoverDatasetSelect" onchange="switchDataset(this.value); executeSearch();" class="bg-transparent text-on-surface font-mono text-label-sm focus:outline-none">
+                            <option value="s2looking">S2Looking Demo</option>
+                            <option value="s2looking_large">S2Looking Benchmark</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search Bar -->
+            <div class="bg-surface-container-lowest p-4 rounded-xl shadow-sm mb-4">
+                <div class="flex gap-3 mb-3">
+                    <div class="relative flex-1">
+                        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-primary text-[20px]">manage_search</span>
+                        <input
+                            type="text"
+                            id="discoverSearchInput"
+                            placeholder="What are you looking for? (e.g., farmland near water, urban expansion, forest boundary)"
+                            class="w-full h-11 pl-11 pr-4 rounded-lg bg-surface-container-low font-inter text-body-md text-on-surface placeholder:text-outline focus:outline-none focus:bg-surface-container-lowest shadow-inner transition-colors"
+                        >
+                    </div>
+                    <button onclick="document.getElementById('searchInput').value=document.getElementById('discoverSearchInput').value; executeSearch();" class="h-11 px-5 rounded-lg bg-primary hover:bg-primary-container text-on-primary font-semibold text-body-md flex items-center gap-2 shadow-sm transition-all">
+                        <span class="material-symbols-outlined text-[18px]">search</span>SEARCH
+                    </button>
+                </div>
+                <div class="flex items-center gap-2 flex-wrap">
+                    <span class="font-mono text-ui-label text-outline uppercase tracking-wider mr-1">Suggestions:</span>
+                    <button onclick="setDiscoverSearch('farmland')" class="px-3 py-1 rounded-full bg-primary-fixed text-on-primary-fixed font-inter text-body-sm hover:bg-primary hover:text-on-primary transition-colors flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-[14px]">psychology</span>farmland
+                    </button>
+                    <button onclick="setDiscoverSearch('urban area')" class="px-3 py-1 rounded-full bg-surface-container-low hover:bg-surface-variant text-on-surface-variant font-inter text-body-sm transition-colors">urban area</button>
+                    <button onclick="setDiscoverSearch('roads infrastructure')" class="px-3 py-1 rounded-full bg-surface-container-low hover:bg-surface-variant text-on-surface-variant font-inter text-body-sm transition-colors">roads &amp; transport</button>
+                    <button onclick="setDiscoverSearch('water bodies')" class="px-3 py-1 rounded-full bg-surface-container-low hover:bg-surface-variant text-on-surface-variant font-inter text-body-sm transition-colors flex items-center gap-1">
+                        <span class="w-2 h-2 rounded-full bg-surface-tint"></span>water bodies
+                    </button>
+                    <button onclick="setDiscoverSearch('forest canopy')" class="px-3 py-1 rounded-full bg-surface-container-low hover:bg-surface-variant text-on-surface-variant font-inter text-body-sm transition-colors">forest boundary</button>
+                    <button onclick="setDiscoverSearch('construction')" class="px-3 py-1 rounded-full bg-surface-container-low hover:bg-surface-variant text-on-surface-variant font-inter text-body-sm transition-colors">construction</button>
+                </div>
+            </div>
+
+            <!-- Results header -->
+            <div class="flex items-center justify-between mb-3 px-1">
+                <div class="flex items-center gap-3">
+                    <h2 class="font-mono text-ui-label uppercase tracking-wider text-on-surface" id="discover-result-header">SCENES — SEARCHING…</h2>
+                    <span class="h-3 w-px bg-outline-variant"></span>
+                    <span class="font-mono text-label-sm text-outline">Air-gapped local index</span>
+                </div>
+            </div>
+
+            <!-- Results Grid -->
+            <div id="discover-results-grid" class="grid grid-cols-2 xl:grid-cols-4 gap-4">
+                <!-- Scene cards rendered by JS -->
+                <div class="col-span-2 xl:col-span-4 py-8 text-center font-inter text-body-md text-on-surface-variant">
+                    Searching local index…
+                </div>
+            </div>
+
+            <!-- Pagination -->
+            <div id="discover-pagination" class="flex items-center justify-between py-4 px-4 bg-surface-container-lowest rounded-xl shadow-sm mt-4 hidden">
+                <div class="flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-secondary"></span>
+                    <span id="discover-pagination-label" class="font-inter text-body-sm text-on-surface-variant"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══════════════════════════════════════════════
+             COMPARE VIEW
+        ══════════════════════════════════════════════ -->
+        <div id="view-compare" class="view-panel hidden flex-1 flex flex-col min-h-0 relative select-none">
+
+            <!-- VIEWER AREA (fills space, inspector on the right) -->
+            <div class="flex flex-1 min-h-0">
+
+                <!-- Central Imagery Canvas -->
+                <div class="flex-1 relative min-w-0 min-h-0 flex flex-col bg-[#1a1a1a]">
+
+                    <!-- Floating top toolbar -->
+                    <div class="absolute top-3 left-3 z-20 flex items-center gap-2">
+                        <!-- View mode buttons -->
+                        <div class="bg-surface-container-lowest/95 backdrop-blur-sm p-0.5 rounded-full shadow-md flex items-center gap-0.5">
+                            <button id="btn-t1" onclick="setViewMode('t1')" class="px-4 py-1.5 rounded-full font-inter text-body-sm text-on-surface-variant hover:text-on-surface transition-all">Before</button>
+                            <button id="btn-swipe" onclick="setViewMode('swipe')" class="px-4 py-1.5 rounded-full font-semibold text-ui-label bg-primary text-on-primary shadow-sm transition-all vm-btn-active">Split</button>
+                            <button id="btn-t2" onclick="setViewMode('t2')" class="px-4 py-1.5 rounded-full font-inter text-body-sm text-on-surface-variant hover:text-on-surface transition-all">After</button>
+                            <button id="btn-overlay" onclick="setViewMode('overlay')" class="px-4 py-1.5 rounded-full font-inter text-body-sm text-on-surface-variant hover:text-tertiary transition-all flex items-center gap-1">
+                                <span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>Overlay
+                            </button>
+                            <button id="btn-mask" onclick="setViewMode('mask')" class="px-4 py-1.5 rounded-full font-inter text-body-sm text-on-surface-variant hover:text-on-surface transition-all">Mask</button>
+                            <button id="btn-ref" onclick="setViewMode('reference')" class="px-4 py-1.5 rounded-full font-inter text-body-sm text-on-surface-variant hover:text-on-surface transition-all">Reference</button>
+                        </div>
+                        <!-- Scene label -->
+                        <div id="compare-scene-label" class="hidden h-9 px-3 bg-surface-container-lowest/95 backdrop-blur-sm rounded-full shadow-md flex items-center gap-2 text-on-surface hover:bg-surface-container-high transition-colors">
+                            <span class="material-symbols-outlined text-primary text-[17px]">satellite_alt</span>
+                            <span id="compare-scene-name" class="font-inter text-body-sm font-medium">—</span>
+                        </div>
+                    </div>
+
+                    <!-- Floating zoom controls -->
+                    <div class="absolute top-3 right-3 z-20 flex flex-col gap-1">
+                        <div class="bg-surface-container-lowest/95 backdrop-blur-sm rounded-lg shadow-md flex flex-col p-0.5">
+                            <button onclick="zoomView(0.2)" class="w-8 h-8 rounded flex items-center justify-center text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors" title="Zoom In">
+                                <span class="material-symbols-outlined text-[18px]">add</span>
+                            </button>
+                            <button onclick="zoomView(-0.2)" class="w-8 h-8 rounded flex items-center justify-center text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors" title="Zoom Out">
+                                <span class="material-symbols-outlined text-[18px]">remove</span>
+                            </button>
+                            <button onclick="resetZoom()" class="w-8 h-8 rounded flex items-center justify-center text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors" title="Fit">
+                                <span class="material-symbols-outlined text-[16px]">crop_free</span>
+                            </button>
+                        </div>
+                        <button onclick="toggleEnhance()" class="w-8 h-8 bg-surface-container-lowest/95 backdrop-blur-sm rounded-lg shadow-md flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors" title="Image Enhance">
+                            <span class="material-symbols-outlined text-[18px]">tune</span>
+                        </button>
+                    </div>
+
+                    <!-- Enhance Panel (floating) -->
+                    <div id="enhance-panel" class="hidden absolute top-14 right-3 z-30 w-64 bg-surface-container-lowest rounded-xl shadow-xl p-4">
+                        <div class="font-semibold text-ui-label uppercase tracking-wider text-on-surface mb-3">Image Display</div>
+                        <div class="flex items-center justify-between mb-2 font-inter text-body-sm">
+                            <span>Brightness</span>
+                            <input type="range" id="adj-brightness" min="0" max="200" value="100" oninput="updateDisplay()" class="w-28 accent-primary">
+                        </div>
+                        <div class="flex items-center justify-between mb-2 font-inter text-body-sm">
+                            <span>Contrast</span>
+                            <input type="range" id="adj-contrast" min="0" max="200" value="100" oninput="updateDisplay()" class="w-28 accent-primary">
+                        </div>
+                        <div class="flex items-center justify-between mb-3 font-inter text-body-sm">
+                            <span>Gamma</span>
+                            <input type="range" id="adj-gamma" min="10" max="300" value="100" oninput="updateDisplay()" class="w-28 accent-primary">
+                        </div>
+                        <button onclick="document.getElementById('adj-brightness').value=100;document.getElementById('adj-contrast').value=100;document.getElementById('adj-gamma').value=100;updateDisplay();" class="w-full py-1.5 bg-surface-container-low hover:bg-surface-container rounded-lg font-mono text-label-sm text-on-surface transition-colors">Reset</button>
+                    </div>
+
+                    <!-- Image labels -->
+                    <div class="absolute top-3 z-10 w-full flex justify-between px-4 pointer-events-none" id="img-labels">
+                        <div id="lbl-t1" class="px-2.5 py-1 bg-surface-container-lowest/90 backdrop-blur-sm rounded-lg font-mono text-label-md text-on-surface font-medium">T1 — BEFORE</div>
+                        <div id="lbl-t2" class="px-2.5 py-1 bg-surface-container-lowest/90 backdrop-blur-sm rounded-lg font-mono text-label-md text-on-surface font-medium">T2 — AFTER</div>
+                    </div>
+
+                    <!-- MAIN COMPARISON CONTAINER -->
+                    <div id="cmp-container" class="flex-1">
+                        <img id="v-before" class="img-layer" src="" alt="T1 Before">
+                        <canvas id="v-red-canvas" class="img-layer" style="display:none; pointer-events:none;"></canvas>
+                        <div id="clip-layer">
+                            <img id="v-after"   class="img-layer" src="" alt="T2 After">
+                            <img id="v-overlay" class="img-layer" style="display:none;opacity:0.7;" src="" alt="Change Overlay">
+                            <img id="v-mask"    class="img-layer" style="display:none;" src="" alt="Change Mask" crossorigin="anonymous">
+                            <img id="v-label"   class="img-layer" style="display:none;" src="" alt="Reference Label">
+                        </div>
+                        <div class="cmp-slider" id="cmp-slider">
+                            <div class="cmp-handle">
+                                <span class="material-symbols-outlined text-[16px] text-primary">compare_arrows</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- HOW-TO-READ legend -->
+                    <div id="viewer-legend" class="absolute bottom-16 left-3 bg-[rgba(10,12,16,0.88)] backdrop-blur-sm px-3 py-2.5 rounded-lg z-10 font-mono text-label-sm text-on-surface-variant pointer-events-none">
+                        <strong class="text-on-surface block mb-1">HOW TO READ</strong>
+                        T1 — Earlier image · T2 — Later image<br>
+                        <span class="text-[#ff3c00]">Red overlay</span> — Visual change detected<br>
+                        <span class="text-white">White mask</span> — Changed pixels · <span class="text-gray-400">Black</span> — Unchanged<br>
+                        Reference — S2Looking ground-truth label
+                    </div>
+
+                    <!-- Bottom timeline rail -->
+                    <div class="flex-shrink-0 h-12 bg-surface-container-lowest/95 backdrop-blur-sm border-t border-outline-variant/30 flex items-center px-4 gap-4 z-10">
+                        <div class="flex flex-col">
+                            <span id="tl-t1-label" class="font-mono text-label-sm text-on-surface font-medium">T1: —</span>
+                            <span class="font-mono text-[10px] text-outline">BEFORE</span>
+                        </div>
+                        <!-- Track -->
+                        <div class="flex-1 relative flex items-center" id="timeline-track">
+                            <div class="w-3 h-3 rounded-full bg-primary flex-shrink-0 z-10"></div>
+                            <div class="flex-1 h-0.5 bg-primary"></div>
+                            <div class="w-3 h-3 rounded-full bg-secondary flex-shrink-0 z-10"></div>
+                        </div>
+                        <div class="flex flex-col items-end">
+                            <span id="tl-t2-label" class="font-mono text-label-sm text-on-surface font-medium">T2: —</span>
+                            <span class="font-mono text-[10px] text-outline">AFTER</span>
+                        </div>
+                        <!-- Mask opacity -->
+                        <div class="flex items-center gap-2 border-l border-outline-variant/40 pl-4">
+                            <span class="font-mono text-label-sm text-on-surface-variant uppercase">Mask</span>
+                            <input type="range" id="mask-opacity" min="0" max="100" value="70" oninput="setMaskOpacity(this.value)" class="w-20 h-1 accent-tertiary cursor-pointer">
+                        </div>
+                        <!-- Close -->
+                        <button onclick="showDiscover()" class="flex items-center gap-1 px-3 py-1 bg-surface-container-low hover:bg-surface-container text-on-surface rounded-lg font-mono text-label-sm transition-colors border-l border-outline-variant/40 ml-2">
+                            <span class="material-symbols-outlined text-[16px]">close</span>Close
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ── RIGHT INSPECTOR ───────────────────── -->
+                <aside class="flex-shrink-0 w-80 bg-surface-container-lowest border-l border-outline-variant/30 flex flex-col overflow-hidden">
+
+                    <!-- Inspector header: Change verdict -->
+                    <div class="flex-shrink-0 p-4 bg-surface-container-low border-b border-outline-variant/30">
+                        <div class="flex items-center justify-between mb-1.5">
+                            <div class="flex items-center gap-2" id="rp-verdict-row">
+                                <span class="w-2.5 h-2.5 rounded-full bg-outline" id="rp-verdict-dot"></span>
+                                <span class="font-mono text-ui-label tracking-wide uppercase text-on-surface-variant" id="rp-status">AWAITING SCENE</span>
+                            </div>
+                            <span class="px-1.5 py-0.5 rounded bg-surface-container font-mono text-label-sm text-on-surface-variant">OFFLINE</span>
+                        </div>
+                        <p class="font-inter text-body-sm text-on-surface-variant" id="rp-analyst-summary">Select a scene from Discover to begin analysis.</p>
+                    </div>
+
+                    <!-- Scrollable inspector body -->
+                    <div class="flex-1 overflow-y-auto">
+
+                        <!-- SCENE section -->
+                        <div class="p-4 border-b border-outline-variant/20">
+                            <div class="font-mono text-ui-label uppercase tracking-wider text-on-surface-variant mb-2">SCENE</div>
+                            <div class="space-y-1.5 font-mono text-label-sm">
+                                <div class="flex justify-between"><span class="text-outline">Scene ID</span><span class="text-on-surface font-medium" id="rp-scene-id">—</span></div>
+                                <div class="flex justify-between"><span class="text-outline">Dataset</span><span class="text-on-surface" id="rp-dataset">—</span></div>
+                                <div class="flex justify-between"><span class="text-outline">Split</span><span class="text-on-surface" id="rp-split">—</span></div>
+                                <div class="flex justify-between"><span class="text-outline">T1 (Before)</span><span class="text-on-surface" id="rp-t1">—</span></div>
+                                <div class="flex justify-between"><span class="text-outline">T2 (After)</span><span class="text-on-surface" id="rp-t2">—</span></div>
+                            </div>
+                        </div>
+
+                        <!-- CHANGE ANALYSIS section -->
+                        <div class="p-4 border-b border-outline-variant/20">
+                            <div class="font-mono text-ui-label uppercase tracking-wider text-on-surface-variant mb-3">CHANGE ANALYSIS</div>
+                            <!-- 4-stat grid -->
+                            <div class="grid grid-cols-2 gap-2 mb-3">
+                                <div class="p-2.5 rounded-lg bg-surface-container-low flex flex-col">
+                                    <span class="font-mono text-label-sm text-on-surface-variant uppercase">Changed Area</span>
+                                    <div class="flex items-baseline gap-1 mt-1">
+                                        <span class="font-semibold text-head-sm text-on-surface" id="rp-changed-area">—</span>
+                                    </div>
+                                    <span class="font-mono text-[10px] text-on-surface-variant mt-0.5" id="rp-changed-pixels">—</span>
+                                </div>
+                                <div class="p-2.5 rounded-lg bg-surface-container-low flex flex-col">
+                                    <span class="font-mono text-label-sm text-on-surface-variant uppercase">Detected Regions</span>
+                                    <div class="flex items-baseline gap-1 mt-1">
+                                        <span class="font-semibold text-head-sm text-on-surface" id="rp-detected-regions">—</span>
+                                        <span class="font-mono text-label-sm text-on-surface-variant">areas</span>
+                                    </div>
+                                </div>
+                                <div class="p-2.5 rounded-lg bg-surface-container-low flex flex-col">
+                                    <span class="font-mono text-label-sm text-on-surface-variant uppercase">Largest Region</span>
+                                    <div class="flex items-baseline gap-1 mt-1">
+                                        <span class="font-semibold text-head-sm text-on-surface" id="rp-largest-area">—</span>
+                                    </div>
+                                </div>
+                                <div class="p-2.5 rounded-lg bg-surface-container-low flex flex-col">
+                                    <span class="font-mono text-label-sm text-on-surface-variant uppercase">GT Regions</span>
+                                    <div class="flex items-baseline gap-1 mt-1">
+                                        <span class="font-semibold text-head-sm text-on-surface" id="rp-ref-regions">—</span>
+                                    </div>
+                                    <span class="font-mono text-[10px] text-on-surface-variant mt-0.5" id="rp-ref-status">—</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- VALIDATION section -->
+                        <div class="p-4 border-b border-outline-variant/20">
+                            <div class="font-mono text-ui-label uppercase tracking-wider text-on-surface-variant mb-2">VALIDATION</div>
+                            <div id="rp-validation" class="p-3 rounded-lg bg-surface-container-low font-inter text-body-sm text-on-surface-variant">—</div>
+                            <div class="mt-2 space-y-1.5 font-mono text-label-sm">
+                                <div id="rp-summary" class="text-on-surface-variant text-[11px] leading-relaxed">—</div>
+                            </div>
+                        </div>
+
+                        <!-- METADATA section -->
+                        <div class="p-4">
+                            <div class="font-mono text-ui-label uppercase tracking-wider text-on-surface-variant mb-2">METADATA</div>
+                            <div class="space-y-1.5 font-mono text-label-sm">
+                                <div class="flex justify-between"><span class="text-outline">Source</span><span class="text-on-surface">S2Looking</span></div>
+                                <div class="flex justify-between"><span class="text-outline">Detector</span><span class="text-on-surface">F_STRUCT_RGB</span></div>
+                                <div class="flex justify-between"><span class="text-outline">Mode</span><span class="text-secondary font-medium">Offline / Air-Gapped</span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Inspector footer actions -->
+                    <div class="flex-shrink-0 p-3 bg-surface-container-low border-t border-outline-variant/30 flex gap-2">
+                        <button onclick="showDiscover()" class="flex-1 h-9 bg-surface-container hover:bg-surface-container-high text-on-surface font-mono text-label-sm rounded-lg flex items-center justify-center gap-1.5 transition-colors">
+                            <span class="material-symbols-outlined text-[16px]">arrow_back</span>Back to Scenes
+                        </button>
+                    </div>
+                </aside>
+            </div>
+
+        </div><!-- /view-compare -->
+
+    </main>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     JAVASCRIPT
+═══════════════════════════════════════════════ -->
+<script>
+// ── State ─────────────────────────────────────────────────────────────────
+let currentDataset = 's2looking';
+let currentPairs = [];
+let isDragging = false;
+let currentZoom = 1;
+let currentView = 'home'; // 'home' | 'discover' | 'compare'
+
+// ── View Switching ─────────────────────────────────────────────────────────
+function setNavActive(viewId) {
+    ['nav-home', 'nav-discover', 'nav-compare'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.remove('nav-active', 'bg-primary-container', 'text-on-primary-container', 'font-semibold');
+    });
+    const navEl = document.getElementById('nav-' + viewId);
+    if (navEl) navEl.classList.add('nav-active');
+}
+
+function showView(viewId) {
+    ['view-home', 'view-discover', 'view-compare'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.add('hidden');
+    });
+    const target = document.getElementById('view-' + viewId);
+    if (target) target.classList.remove('hidden');
+    setNavActive(viewId);
+    currentView = viewId;
+}
+
+function showHome(e) { if(e) e.preventDefault(); showView('home'); }
+function showDiscover(e) { if(e) e.preventDefault(); showView('discover'); }
+function showCompare(e) { if(e) e.preventDefault(); showView('compare'); }
+
+// ── Dataset Switching ──────────────────────────────────────────────────────
+function switchDataset(ds) {
+    currentDataset = ds;
+    document.getElementById('ds-badge').textContent = ds === 's2looking_large' ? 'S2Looking Benchmark' : 'S2Looking Demo';
+    // Keep both dropdowns in sync
+    document.getElementById('datasetSelect').value = ds;
+    document.getElementById('discoverDatasetSelect').value = ds;
+}
+
+function setDiscoverSearch(query) {
+    document.getElementById('discoverSearchInput').value = query;
+    document.getElementById('searchInput').value = query;
+    executeSearch();
+}
+
+// ── Search ─────────────────────────────────────────────────────────────────
+async function executeSearch() {
+    const q = (document.getElementById('searchInput').value || '').trim() || 'demo';
+    // Sync discover search input
+    if (document.getElementById('discoverSearchInput').value === '') {
+        document.getElementById('discoverSearchInput').value = q === 'demo' ? '' : q;
+    }
+
+    document.getElementById('discover-result-header').textContent = 'SCENES — SEARCHING…';
+    document.getElementById('discover-results-grid').innerHTML = '<div class="col-span-4 py-10 text-center font-inter text-body-md text-on-surface-variant">Querying local index…</div>';
+
+    try {
+        const url = q === 'demo'
+            ? '/s2looking-demo'
+            : `/search?q=${encodeURIComponent(q)}&k=12&dataset=${currentDataset}`;
+        const res = await fetch(url);
+        const data = await res.json();
+        currentPairs = data.results || [];
+        renderResults(data, q);
+    } catch (err) {
+        document.getElementById('discover-result-header').textContent = 'SCENES — NETWORK ERROR';
+        document.getElementById('discover-results-grid').innerHTML = '<div class="col-span-4 py-10 text-center font-inter text-body-sm text-tertiary">Failed to reach local server. Is the backend running?</div>';
+    }
+}
+
+function renderResults(data, q) {
+    const grid = document.getElementById('discover-results-grid');
+    const header = document.getElementById('discover-result-header');
+    const homeList = document.getElementById('home-recent-list');
+
+    if (data.no_match || !currentPairs.length) {
+        header.textContent = 'SCENES — 0 RESULTS';
+        grid.innerHTML = '<div class="col-span-4 py-10 text-center font-inter text-body-sm text-on-surface-variant">No scenes matched your query. Try a different search term.</div>';
+        return;
+    }
+
+    header.textContent = `SCENES — ${currentPairs.length} FOUND IN LOCAL CACHE`;
+    document.getElementById('discover-count-badge').querySelector('span:last-child').textContent = `${currentPairs.length} Scenes Found · Offline Cache`;
+
+    // Render discover grid cards
+    let gridHTML = '';
+    currentPairs.forEach((p, i) => {
+        const bUrl = (p.before || {}).url || '';
+        const aUrl = (p.after || {}).url || '';
+        const split = p.split || 'demo';
+        const analyzeDs = p.index === 's2looking_large' ? 's2looking_large' : 's2looking';
+        const labelUrl = p.label_url || `/s2looking/label/${split}/${p.pair_id}`;
+        const isFirst = i === 0;
+
+        gridHTML += `
+        <div class="group flex flex-col bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 ${isFirst ? 'ring-2 ring-primary' : ''}">
+            <div class="relative h-44 w-full bg-surface-container-high overflow-hidden">
+                <img class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" src="${bUrl}" onerror="this.style.opacity=0.3" alt="Scene ${p.pair_id} Before">
+                <div class="absolute top-2 left-2 flex items-center gap-1">
+                    <span class="px-2 py-0.5 rounded-md bg-[rgba(33,49,69,0.85)] text-[#eaf1ff] backdrop-blur font-mono text-label-sm font-medium">S2Looking</span>
+                    <span class="px-2 py-0.5 rounded-md bg-secondary text-on-secondary font-mono text-label-sm font-semibold">Dual-Pass</span>
+                </div>
+                <div class="absolute bottom-2 right-2">
+                    <span class="px-2 py-0.5 rounded bg-surface-container-lowest/90 backdrop-blur font-mono text-label-sm text-on-surface font-semibold shadow-sm">10m SAR</span>
+                </div>
+            </div>
+            <div class="p-3 flex-1 flex flex-col justify-between gap-2">
+                <div>
+                    <div class="flex items-center justify-between">
+                        <span class="font-mono text-label-lg text-primary font-bold">${p.pair_id}</span>
+                        <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-surface-variant/60 font-mono text-label-sm text-on-surface-variant font-medium">${split}</span>
+                    </div>
+                    <p class="font-semibold text-head-sm text-on-surface mt-0.5 truncate">Scene ${p.pair_id}</p>
+                    <p class="font-mono text-label-sm text-outline truncate">S2Looking ${split.charAt(0).toUpperCase() + split.slice(1)}</p>
+                </div>
+                <div class="p-2 rounded-lg bg-surface-container-low space-y-1">
+                    <div class="flex items-center justify-between font-mono text-label-sm">
+                        <span class="text-outline">T1 Before:</span><span class="text-on-surface font-semibold">Image2</span>
+                    </div>
+                    <div class="flex items-center justify-between font-mono text-label-sm">
+                        <span class="text-outline">T2 After:</span><span class="text-on-surface font-semibold">Image1</span>
+                    </div>
+                    <div class="flex items-center justify-between font-mono text-label-sm pt-0.5 border-t border-outline-variant/30">
+                        <span class="text-outline">Dataset:</span><span class="text-on-surface-variant">${analyzeDs === 's2looking_large' ? 'S2Looking Benchmark' : 'S2Looking Demo'}</span>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="openAnalysis('${p.pair_id}', '${bUrl}', '${aUrl}', '${analyzeDs}', '${split}', '${labelUrl}')" class="flex-1 h-9 rounded-lg bg-primary hover:bg-primary-container text-on-primary font-inter text-body-sm font-semibold flex items-center justify-center gap-1.5 transition-colors">
+                        <span class="material-symbols-outlined text-[16px]">compare</span>Compare
+                    </button>
+                    <button class="h-9 px-2.5 rounded-lg bg-surface-container-low hover:bg-surface-container text-on-surface-variant font-inter text-body-sm transition-colors" title="Quick preview">
+                        <span class="material-symbols-outlined text-[18px]">visibility</span>
+                    </button>
+                </div>
+            </div>
+        </div>`;
+    });
+    grid.innerHTML = gridHTML;
+
+    // Pagination bar
+    const pagBar = document.getElementById('discover-pagination');
+    const pagLabel = document.getElementById('discover-pagination-label');
+    pagBar.classList.remove('hidden');
+    pagLabel.textContent = `Showing ${currentPairs.length} scenes (Total 42 offline scenes cached on NVMe)`;
+
+    // Also populate home recent list
+    let homeHTML = '';
+    currentPairs.slice(0, 4).forEach(p => {
+        const bUrl = (p.before || {}).url || '';
+        const aUrl = (p.after || {}).url || '';
+        const split = p.split || 'demo';
+        const analyzeDs = p.index === 's2looking_large' ? 's2looking_large' : 's2looking';
+        const labelUrl = p.label_url || `/s2looking/label/${split}/${p.pair_id}`;
+        homeHTML += `
+        <div class="grid grid-cols-12 items-center px-2 py-2.5 rounded hover:bg-surface-container-low transition-colors group">
+            <div class="col-span-2 flex items-center gap-1 font-mono text-label-md text-on-surface font-medium">
+                <span class="material-symbols-outlined text-primary text-[14px]">grid_4x4</span>
+                <span>${p.pair_id}</span>
+            </div>
+            <div class="col-span-4 min-w-0 pr-2">
+                <div class="font-inter text-body-md text-on-surface truncate font-medium">Scene ${p.pair_id}</div>
+                <div class="font-mono text-label-sm text-on-surface-variant">S2Looking · ${split}</div>
+            </div>
+            <div class="col-span-3 font-mono text-label-sm text-on-surface-variant">
+                <div><span class="text-outline">T1:</span> Image2</div>
+                <div><span class="text-primary font-medium">T2:</span> Image1</div>
+            </div>
+            <div class="col-span-2 text-center">
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-surface-container-high text-secondary font-mono text-label-sm font-semibold">
+                    <span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>Cached
+                </span>
+            </div>
+            <div class="col-span-1 text-right">
+                <button onclick="openAnalysis('${p.pair_id}', '${bUrl}', '${aUrl}', '${analyzeDs}', '${split}', '${labelUrl}')" class="p-1 rounded hover:bg-surface-container text-primary transition-colors" title="Open Scene ${p.pair_id}">
+                    <span class="material-symbols-outlined text-[18px]">launch</span>
+                </button>
+            </div>
+        </div>`;
+    });
+    homeList.innerHTML = homeHTML;
+}
+
+// ── Analysis Engine ────────────────────────────────────────────────────────
+async function openAnalysis(titleId, bUrl, aUrl, dataset, split, labelUrl) {
+    // Switch to compare view
+    showCompare();
+
+    // Update scene name in toolbar
+    const sceneLabel = document.getElementById('compare-scene-label');
+    const sceneName  = document.getElementById('compare-scene-name');
+    sceneLabel.classList.remove('hidden');
+    sceneName.textContent = `Scene ${titleId}`;
+
+    // Update inspector scene metadata
+    document.getElementById('rp-scene-id').textContent = titleId;
+    document.getElementById('rp-dataset').textContent = dataset === 's2looking_large' ? 'S2Looking Benchmark' : 'S2Looking Demo';
+    document.getElementById('rp-split').textContent = split || 'demo';
+    document.getElementById('rp-t1').textContent = 'Image2 (Before)';
+    document.getElementById('rp-t2').textContent = 'Image1 (After)';
+
+    // Timeline labels
+    document.getElementById('tl-t1-label').textContent = 'T1: Before';
+    document.getElementById('tl-t2-label').textContent = 'T2: After';
+
+    // Set base images
+    document.getElementById('v-before').src = bUrl;
+    document.getElementById('v-after').src  = aUrl;
+    document.getElementById('v-overlay').style.display = 'none';
+    document.getElementById('v-mask').style.display    = 'none';
+    document.getElementById('v-label').src = labelUrl;
+    document.getElementById('v-label').style.display   = 'none';
+
+    setViewMode('swipe');
+    resetZoom();
+    document.getElementById('adj-brightness').value = 100;
+    document.getElementById('adj-contrast').value   = 100;
+    document.getElementById('adj-gamma').value       = 100;
+    updateDisplay();
+
+    // Inspector: set loading state
+    document.getElementById('rp-status').textContent = 'ANALYZING…';
+    document.getElementById('rp-verdict-dot').className = 'w-2.5 h-2.5 rounded-full bg-outline animate-pulse';
+    document.getElementById('rp-analyst-summary').textContent = 'Running change detection pipeline…';
+    document.getElementById('rp-changed-area').textContent    = '…';
+    document.getElementById('rp-changed-pixels').textContent  = '…';
+    document.getElementById('rp-detected-regions').textContent= '…';
+    document.getElementById('rp-largest-area').textContent    = '…';
+    document.getElementById('rp-ref-regions').textContent     = '…';
+    document.getElementById('rp-ref-status').textContent      = '…';
+    document.getElementById('rp-validation').textContent      = 'Running verification pipeline…';
+    document.getElementById('rp-validation').className        = 'p-3 rounded-lg bg-surface-container-low font-inter text-body-sm text-on-surface-variant';
+    document.getElementById('rp-summary').textContent         = '…';
+
+    let refRegions    = 0;
+    let refHasChange  = false;
+    let refAvailable  = true;
+
+    // 1. Analyze ground truth
+    try {
+        refRegions   = await countRegions(labelUrl);
+        refHasChange = refRegions > 0;
+        document.getElementById('rp-ref-status').textContent  = refHasChange ? 'GT: Change present' : 'GT: No change';
+        document.getElementById('rp-ref-regions').textContent = refRegions;
+    } catch (e) {
+        refAvailable = false;
+        document.getElementById('rp-ref-status').textContent  = 'Unavailable';
+        document.getElementById('rp-ref-regions').textContent = '—';
+    }
+
+    // 2. Run detector
+    try {
+        const url = dataset === 's2looking_large'
+            ? `/analyze?dataset=s2looking_large&pair_id=${encodeURIComponent(titleId)}&split=${split || 'train'}`
+            : `/analyze?dataset=s2looking&pair_id=${encodeURIComponent(titleId)}`;
+
+        const res  = await fetch(url);
+        const data = await res.json();
+
+        if (data.status === 'ok') {
+            const r = data.result;
+            const detHasChange = r.detected_regions > 0;
+
+            // Verdict
+            let verdict    = detHasChange ? 'CHANGE DETECTED' : 'NO SIGNIFICANT CHANGE';
+            let dotClass   = detHasChange ? 'w-2.5 h-2.5 rounded-full bg-tertiary animate-pulse' : 'w-2.5 h-2.5 rounded-full bg-secondary';
+            document.getElementById('rp-status').textContent = verdict;
+            document.getElementById('rp-verdict-dot').className = dotClass;
+            document.getElementById('rp-analyst-summary').textContent =
+                `The system identified ${r.detected_regions} localized area(s) of visual change.`;
+
+            // Measurements
+            document.getElementById('rp-changed-area').textContent     = r.changed_area_percent + '%';
+            document.getElementById('rp-changed-pixels').textContent   = r.changed_pixel_area + ' px';
+            document.getElementById('rp-detected-regions').textContent = r.detected_regions;
+            document.getElementById('rp-largest-area').textContent     = r.max_region_pct + '%';
+
+            // Load overlay/mask images
+            if (r.overlay_url) document.getElementById('v-overlay').src = r.overlay_url + '?t=' + Date.now();
+            if (r.mask_url)    document.getElementById('v-mask').src    = r.mask_url + '?t=' + Date.now();
+
+            // 3. Validation logic
+            let valText  = '';
+            let valClass = 'p-3 rounded-lg font-inter text-body-sm ';
+            let sumText  = '';
+
+            if (!refAvailable) {
+                valText  = 'REFERENCE UNAVAILABLE — NOT VALIDATED';
+                valClass += 'bg-surface-container-low text-on-surface-variant';
+                sumText  = 'Reference annotation is unavailable. Results cannot be cross-referenced.';
             } else {
-                slider.style.display = 'none';
-                clipLayer.style.clipPath = 'none';
-                vBefore.style.display = 'none';
-                
-                if (mode === 't1') vBefore.style.display = 'block';
-                else if (mode === 't2') vAfter.style.display = 'block';
-                else if (mode === 'overlay') { vAfter.style.display = 'block'; vOverlay.style.display = 'block'; }
-                else if (mode === 'mask') vMask.style.display = 'block';
-                else if (mode === 'reference') vLabel.style.display = 'block';
-            }
-        }
-
-        /* ── Analysis Engine ── */
-        async function openAnalysis(titleId, bUrl, aUrl, dataset, split, labelUrl) {
-            document.getElementById('globeCanvas').style.display = 'none';
-            document.getElementById('viewer-content').style.display = 'flex';
-            document.getElementById('right-panel').style.display = 'flex';
-            document.getElementById('timeline-track').style.visibility = 'visible';
-
-            // Setup base images
-            document.getElementById('v-before').src = bUrl;
-            document.getElementById('v-after').src = aUrl;
-            
-            // Hide overlays initially
-            document.getElementById('v-overlay').style.display = 'none';
-            document.getElementById('v-mask').style.display = 'none';
-            document.getElementById('v-label').src = labelUrl;
-            document.getElementById('v-label').style.display = 'none';
-            
-            setViewMode('swipe');
-            resetZoom();
-
-            document.getElementById('adj-brightness').value = 100;
-            document.getElementById('adj-contrast').value = 100;
-            document.getElementById('adj-gamma').value = 100;
-            updateDisplay();
-            
-            // Defaults
-            document.getElementById('rp-status').textContent = 'ANALYZING';
-            document.getElementById('rp-ref-status').textContent = '...';
-            document.getElementById('rp-ref-regions').textContent = '...';
-            document.getElementById('rp-summary').textContent = '...';
-            document.getElementById('rp-validation').innerHTML = 'Running verification pipeline...';
-            document.getElementById('rp-validation').className = 'alert-box';
-
-            let refRegions = 0;
-            let refHasChange = false;
-            let refAvailable = true;
-
-            // 1. Analyze Ground Truth
-            try {
-                refRegions = await countRegions(labelUrl);
-                refHasChange = refRegions > 0;
-                document.getElementById('rp-ref-status').textContent = refHasChange ? 'CHANGE PRESENT' : 'NO CHANGE';
-                document.getElementById('rp-ref-regions').textContent = refRegions;
-            } catch(e) {
-                refAvailable = false;
-                document.getElementById('rp-ref-status').textContent = 'UNAVAILABLE';
-                document.getElementById('rp-ref-regions').textContent = '—';
-            }
-
-            // 2. Run Detector
-            try {
-                const url = dataset === 's2looking_large' 
-                    ? `/analyze?dataset=s2looking_large&pair_id=${encodeURIComponent(titleId)}&split=${split || 'train'}`
-                    : `/analyze?dataset=s2looking&pair_id=${encodeURIComponent(titleId)}`;
-                    
-                const res = await fetch(url);
-                const data = await res.json();
-
-                if (data.status === 'ok') {
-                    const r = data.result;
-                    const detHasChange = r.detected_regions > 0;
-                    
-                    document.getElementById('rp-status').textContent = detHasChange ? 'CHANGE DETECTED' : 'NO SIGNIFICANT CHANGE';
-                    document.getElementById('rp-analyst-summary').textContent = `The detector identified ${r.detected_regions} localized areas of change.`;
-
-                    document.getElementById('rp-changed-pixels').textContent = r.changed_pixel_area;
-                    document.getElementById('rp-changed-area').textContent = r.changed_area_percent + '%';
-                    document.getElementById('rp-detected-regions').textContent = r.detected_regions;
-                    document.getElementById('rp-largest-area').textContent = r.max_region_pct + '%';
-                    
-                    if (r.overlay_url) document.getElementById('v-overlay').src = r.overlay_url + '?t=' + Date.now();
-                    if (r.mask_url) document.getElementById('v-mask').src = r.mask_url + '?t=' + Date.now();
-                    
-                    // 3. Validation Logic
-                    let valHtml = '';
-                    let valClass = 'alert-box';
-                    let sumText = '';
-                    
-                    if (!refAvailable) {
-                        valHtml = `<strong>NOT VALIDATED</strong>`;
-                        sumText = `Reference annotation is unavailable. Cannot validate detector results.`;
-                    } else {
-                        if (detHasChange && refHasChange) {
-                            valHtml = `<strong>CHANGE AGREEMENT</strong>`;
-                            sumText = `${r.detected_regions} change region(s) identified in agreement with reference.`;
-                        } else if (!detHasChange && !refHasChange) {
-                            valHtml = `<strong>NO-CHANGE AGREEMENT</strong>`;
-                            sumText = `No detector-positive regions found, matching reference.`;
-                        } else if (!detHasChange && refHasChange) {
-                            valHtml = `<strong>⚠ DETECTOR MISS</strong>`;
-                            valClass += ' warning';
-                            sumText = `Reference annotation contains change, but the detector reported no significant change.`;
-                        } else if (detHasChange && !refHasChange) {
-                            valHtml = `<strong>⚠ FALSE POSITIVE</strong>`;
-                            valClass += ' warning';
-                            sumText = `Detector flagged change, but the reference contains none.`;
-                        }
-                    }
-                    
-                    document.getElementById('rp-validation').innerHTML = valHtml;
-                    document.getElementById('rp-validation').className = valClass;
-                    document.getElementById('rp-summary').textContent = sumText;
-
+                if (detHasChange && refHasChange) {
+                    valText  = '✓ REFERENCE AVAILABLE — CHANGE AGREEMENT';
+                    valClass += 'bg-secondary-container/40 text-on-secondary-container';
+                    sumText  = `${r.detected_regions} change region(s) identified. Agreement with ground-truth reference.`;
+                } else if (!detHasChange && !refHasChange) {
+                    valText  = '✓ REFERENCE AVAILABLE — NO-CHANGE AGREEMENT';
+                    valClass += 'bg-secondary-container/40 text-on-secondary-container';
+                    sumText  = 'No detector-positive regions found, matching reference annotation.';
+                } else if (!detHasChange && refHasChange) {
+                    valText  = '⚠ REFERENCE AVAILABLE — DETECTOR MISS';
+                    valClass += 'bg-error-container text-on-error-container';
+                    sumText  = 'Reference contains change but the detector reported no significant change. Review required.';
+                } else {
+                    valText  = '⚠ REFERENCE AVAILABLE — POTENTIAL FALSE POSITIVE';
+                    valClass += 'bg-tertiary-fixed text-on-tertiary-fixed';
+                    sumText  = 'Visual change detected. Reference annotation contains no change. Manual review recommended.';
                 }
-            } catch (e) {
-                document.getElementById('rp-validation').textContent = 'Analysis failed.';
             }
-        }
 
-        function countRegions(srcUrl) {
-            return new Promise((resolve, reject) => {
-                const img = new Image();
-                img.crossOrigin = "Anonymous";
-                img.onload = () => {
-                    const cvs = document.getElementById('hidden-cvs');
-                    const ctx = cvs.getContext('2d', { willReadFrequently: true });
-                    cvs.width = img.width; cvs.height = img.height;
-                    ctx.drawImage(img, 0, 0);
-                    
-                    const imgData = ctx.getImageData(0,0,cvs.width,cvs.height);
-                    const data = imgData.data;
-                    const w = cvs.width, h = cvs.height;
-                    
-                    let labels = new Int32Array(w * h);
-                    let nextLabel = 1;
-                    let equiv = [0];
-                    
-                    for(let y=0; y<h; y++) {
-                        for(let x=0; x<w; x++) {
-                            const idx = (y*w + x)*4;
-                            // Check red channel > 128
-                            if(data[idx] > 128) {
-                                let left = (x > 0) ? labels[y*w + (x-1)] : 0;
-                                let up = (y > 0) ? labels[(y-1)*w + x] : 0;
-                                
-                                if(left === 0 && up === 0) {
-                                    labels[y*w + x] = nextLabel;
-                                    equiv[nextLabel] = nextLabel;
-                                    nextLabel++;
-                                } else if(left !== 0 && up === 0) {
-                                    labels[y*w + x] = left;
-                                } else if(left === 0 && up !== 0) {
-                                    labels[y*w + x] = up;
-                                } else {
-                                    labels[y*w + x] = left;
-                                    let rL = left; while(equiv[rL] !== rL) rL = equiv[rL];
-                                    let rU = up; while(equiv[rU] !== rU) rU = equiv[rU];
-                                    if(rL !== rU) equiv[rU] = rL;
-                                }
-                            }
+            document.getElementById('rp-validation').textContent = valText;
+            document.getElementById('rp-validation').className   = valClass;
+            document.getElementById('rp-summary').textContent    = sumText;
+        }
+    } catch (e) {
+        document.getElementById('rp-status').textContent         = 'ANALYSIS ERROR';
+        document.getElementById('rp-verdict-dot').className      = 'w-2.5 h-2.5 rounded-full bg-tertiary';
+        document.getElementById('rp-analyst-summary').textContent = 'Analysis failed. Check backend server.';
+        document.getElementById('rp-validation').textContent     = 'Connection error.';
+    }
+}
+
+// ── Region Counter (ground truth label) ───────────────────────────────────
+function countRegions(srcUrl) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = 'Anonymous';
+        img.onload = () => {
+            const cvs = document.getElementById('hidden-cvs');
+            const ctx = cvs.getContext('2d', { willReadFrequently: true });
+            cvs.width = img.width; cvs.height = img.height;
+            ctx.drawImage(img, 0, 0);
+            const imgData = ctx.getImageData(0, 0, cvs.width, cvs.height);
+            const data = imgData.data;
+            const w = cvs.width, h = cvs.height;
+            let labels = new Int32Array(w * h);
+            let nextLabel = 1;
+            let equiv = [0];
+            for (let y = 0; y < h; y++) {
+                for (let x = 0; x < w; x++) {
+                    const idx = (y * w + x) * 4;
+                    if (data[idx] > 128) {
+                        let left = (x > 0) ? labels[y * w + (x - 1)] : 0;
+                        let up   = (y > 0) ? labels[(y - 1) * w + x] : 0;
+                        if (left === 0 && up === 0) {
+                            labels[y * w + x] = nextLabel;
+                            equiv[nextLabel] = nextLabel;
+                            nextLabel++;
+                        } else if (left !== 0 && up === 0) {
+                            labels[y * w + x] = left;
+                        } else if (left === 0 && up !== 0) {
+                            labels[y * w + x] = up;
+                        } else {
+                            labels[y * w + x] = left;
+                            let rL = left; while (equiv[rL] !== rL) rL = equiv[rL];
+                            let rU = up;   while (equiv[rU] !== rU) rU = equiv[rU];
+                            if (rL !== rU) equiv[rU] = rL;
                         }
                     }
-                    
-                    let finalLabels = new Set();
-                    for(let i=1; i<nextLabel; i++) {
-                        let root = i;
-                        while(equiv[root] !== root) root = equiv[root];
-                        if(root !== 0) finalLabels.add(root);
-                    }
-                    resolve(finalLabels.size);
-                };
-                img.onerror = () => reject();
-                img.src = srcUrl;
-            });
-        }
-
-        function closeAnalysis() {
-            document.getElementById('globeCanvas').style.display = 'block';
-            document.getElementById('viewer-content').style.display = 'none';
-            document.getElementById('right-panel').style.display = 'none';
-            document.getElementById('timeline-track').style.visibility = 'hidden';
-            document.getElementById('layers-panel').style.display = 'none';
-            document.getElementById('enhance-panel').style.display = 'none';
-        }
-
-        /* ── Swipe Interaction ── */
-        const container = document.getElementById('cmp-container');
-        const clipLayer = document.getElementById('clip-layer');
-        const slider = document.getElementById('cmp-slider');
-
-        container.addEventListener('mousedown', () => isDragging = true);
-        window.addEventListener('mouseup', () => isDragging = false);
-        container.addEventListener('mousemove', (e) => {
-            if (!isDragging || document.getElementById('cmp-slider').style.display === 'none') return;
-            const rect = container.getBoundingClientRect();
-            let x = e.clientX - rect.left;
-            x = Math.max(0, Math.min(x, rect.width));
-            const pct = (x / rect.width) * 100;
-            clipLayer.style.clipPath = `polygon(${pct}% 0, 100% 0, 100% 100%, ${pct}% 100%)`;
-            slider.style.left = `${pct}%`;
-        });
-
-        /* ── Layers & Zoom ── */
-        function updateLayers() {
-            const vA = document.getElementById('chk-after').checked;
-            const vO = document.getElementById('chk-overlay').checked;
-            const vM = document.getElementById('chk-mask').checked;
-            const vL = document.getElementById('chk-label').checked;
-            
-            document.getElementById('v-after').style.display = vA ? 'block' : 'none';
-            
-            const elO = document.getElementById('v-overlay');
-            elO.style.display = vO ? 'block' : 'none';
-            elO.style.opacity = document.getElementById('op-overlay').value / 100;
-            
-            const elM = document.getElementById('v-mask');
-            elM.style.display = vM ? 'block' : 'none';
-            elM.style.opacity = document.getElementById('op-mask').value / 100;
-            
-            const elL = document.getElementById('v-label');
-            elL.style.display = vL ? 'block' : 'none';
-            elL.style.opacity = document.getElementById('op-label').value / 100;
-        }
-
-        let currentZoom = 1;
-        function zoomView(delta) {
-            currentZoom = Math.max(0.2, currentZoom + delta);
-            document.querySelectorAll('.img-layer').forEach(img => {
-                img.style.transform = `scale(${currentZoom})`;
-            });
-        }
-        function resetZoom() {
-            currentZoom = 1;
-            document.querySelectorAll('.img-layer').forEach(img => {
-                img.style.transform = `scale(1)`;
-            });
-            if (document.getElementById('cmp-slider').style.display !== 'none') {
-                clipLayer.style.clipPath = `polygon(50% 0, 100% 0, 100% 100%, 50% 100%)`;
-                slider.style.left = `50%`;
+                }
             }
-        }
-
-        function updateDisplay() {
-            const b = document.getElementById('adj-brightness').value;
-            const c = document.getElementById('adj-contrast').value;
-            const g = document.getElementById('adj-gamma').value / 100;
-            
-            if (b == 100 && c == 100 && g == 1) {
-                document.getElementById('v-before').style.filter = 'none';
-                document.getElementById('v-after').style.filter = 'none';
-                return;
+            let finalLabels = new Set();
+            for (let i = 1; i < nextLabel; i++) {
+                let root = i;
+                while (equiv[root] !== root) root = equiv[root];
+                if (root !== 0) finalLabels.add(root);
             }
-            
-            const exponent = 1 / g;
-            const gammaTrans = document.getElementById('gamma-transfer');
-            if (gammaTrans) {
-                ['R','G','B'].forEach(ch => {
-                    const el = gammaTrans.querySelector('feFunc' + ch);
-                    if (el) el.setAttribute('exponent', exponent);
-                });
-            }
-            const filterStr = `url(#img-adjust) brightness(${b}%) contrast(${c}%)`;
-            document.getElementById('v-before').style.filter = filterStr;
-            document.getElementById('v-after').style.filter = filterStr;
-        }
+            resolve(finalLabels.size);
+        };
+        img.onerror = () => reject();
+        img.src = srcUrl;
+    });
+}
 
-        document.addEventListener('DOMContentLoaded', () => { executeSearch(); });
-    </script>
+// ── View Mode (Swipe/Split/Before/After/Overlay/Mask/Reference) ────────────
+function setViewMode(mode) {
+    const modes = ['t1', 't2', 'overlay', 'mask', 'ref', 'swipe'];
+    modes.forEach(m => {
+        const btn = document.getElementById('btn-' + m);
+        if (!btn) return;
+        btn.classList.remove('vm-btn-active', 'bg-primary', 'text-on-primary', 'bg-secondary', 'text-on-secondary', 'font-semibold');
+        btn.className = btn.className.replace(/px-4 py-1.5 rounded-full\s+/, 'px-4 py-1.5 rounded-full ');
+    });
+
+    const activeBtn = document.getElementById('btn-' + mode);
+    if (activeBtn) {
+        activeBtn.classList.add('bg-primary', 'text-on-primary', 'font-semibold');
+    }
+
+    const vBefore  = document.getElementById('v-before');
+    const vAfter   = document.getElementById('v-after');
+    const vOverlay = document.getElementById('v-overlay');
+    const vMask    = document.getElementById('v-mask');
+    const vLabel   = document.getElementById('v-label');
+    const vRed     = document.getElementById('v-red-canvas');
+    const slider   = document.getElementById('cmp-slider');
+    const clip     = document.getElementById('clip-layer');
+
+    // Reset all
+    [vAfter, vOverlay, vMask, vLabel].forEach(el => el && (el.style.display = 'none'));
+    if (vRed) vRed.style.display = 'none';
+    vBefore.style.display = 'none';
+    slider.style.display  = 'none';
+    clip.style.clipPath   = 'none';
+
+    const lblT1 = document.getElementById('lbl-t1');
+    const lblT2 = document.getElementById('lbl-t2');
+
+    if (mode === 'swipe') {
+        vBefore.style.display = 'block';
+        vAfter.style.display  = 'block';
+        slider.style.display  = 'block';
+        clip.style.clipPath   = 'polygon(50% 0, 100% 0, 100% 100%, 50% 100%)';
+        slider.style.left     = '50%';
+        lblT1.style.display   = 'block';
+        lblT2.style.display   = 'block';
+    } else if (mode === 't1') {
+        vBefore.style.display = 'block';
+        lblT1.style.display   = 'block';
+        lblT2.style.display   = 'none';
+    } else if (mode === 't2') {
+        vAfter.style.display  = 'block';
+        lblT1.style.display   = 'none';
+        lblT2.style.display   = 'block';
+    } else if (mode === 'overlay') {
+        vBefore.style.display   = 'block';
+        if (vRed) {
+            vRed.style.display  = 'block';
+            vRed.style.opacity  = document.getElementById('mask-opacity').value / 100;
+        }
+        lblT1.style.display     = 'block';
+        lblT2.style.display     = 'none';
+    } else if (mode === 'mask') {
+        vMask.style.display   = 'block';
+        lblT1.style.display   = 'none';
+        lblT2.style.display   = 'none';
+    } else if (mode === 'reference') {
+        vLabel.style.display  = 'block';
+        lblT1.style.display   = 'none';
+        lblT2.style.display   = 'none';
+    }
+}
+
+// ── Swipe Interaction ──────────────────────────────────────────────────────
+const cmpContainer = document.getElementById('cmp-container');
+const clipLayer    = document.getElementById('clip-layer');
+const sliderEl     = document.getElementById('cmp-slider');
+
+cmpContainer.addEventListener('mousedown', () => isDragging = true);
+window.addEventListener('mouseup', () => isDragging = false);
+cmpContainer.addEventListener('mousemove', (e) => {
+    if (!isDragging || sliderEl.style.display === 'none') return;
+    const rect = cmpContainer.getBoundingClientRect();
+    let x = e.clientX - rect.left;
+    x = Math.max(0, Math.min(x, rect.width));
+    const pct = (x / rect.width) * 100;
+    clipLayer.style.clipPath = `polygon(${pct}% 0, 100% 0, 100% 100%, ${pct}% 100%)`;
+    sliderEl.style.left = `${pct}%`;
+});
+
+// Touch support for swipe
+cmpContainer.addEventListener('touchmove', (e) => {
+    if (sliderEl.style.display === 'none') return;
+    e.preventDefault();
+    const rect = cmpContainer.getBoundingClientRect();
+    let x = e.touches[0].clientX - rect.left;
+    x = Math.max(0, Math.min(x, rect.width));
+    const pct = (x / rect.width) * 100;
+    clipLayer.style.clipPath = `polygon(${pct}% 0, 100% 0, 100% 100%, ${pct}% 100%)`;
+    sliderEl.style.left = `${pct}%`;
+}, { passive: false });
+
+// ── Zoom ───────────────────────────────────────────────────────────────────
+function zoomView(delta) {
+    currentZoom = Math.max(0.2, Math.min(currentZoom + delta, 4));
+    document.querySelectorAll('.img-layer').forEach(img => {
+        img.style.transform = `scale(${currentZoom})`;
+    });
+}
+function resetZoom() {
+    currentZoom = 1;
+    document.querySelectorAll('.img-layer').forEach(img => {
+        img.style.transform = 'scale(1)';
+    });
+    if (sliderEl.style.display !== 'none') {
+        clipLayer.style.clipPath = 'polygon(50% 0, 100% 0, 100% 100%, 50% 100%)';
+        sliderEl.style.left = '50%';
+    }
+}
+
+// ── Image Enhance ──────────────────────────────────────────────────────────
+function updateDisplay() {
+    const b = document.getElementById('adj-brightness').value;
+    const c = document.getElementById('adj-contrast').value;
+    const g = document.getElementById('adj-gamma').value / 100;
+    if (b == 100 && c == 100 && g == 1) {
+        document.getElementById('v-before').style.filter = 'none';
+        document.getElementById('v-after').style.filter  = 'none';
+        return;
+    }
+    const exponent = 1 / g;
+    const gt = document.getElementById('gamma-transfer');
+    if (gt) ['R','G','B'].forEach(ch => {
+        const el = gt.querySelector('feFunc' + ch);
+        if (el) el.setAttribute('exponent', exponent);
+    });
+    const filterStr = `url(#img-adjust) brightness(${b}%) contrast(${c}%)`;
+    document.getElementById('v-before').style.filter = filterStr;
+    document.getElementById('v-after').style.filter  = filterStr;
+}
+
+function toggleEnhance() {
+    const panel = document.getElementById('enhance-panel');
+    panel.classList.toggle('hidden');
+}
+
+// ── Mask opacity ───────────────────────────────────────────────────────────
+function setMaskOpacity(val) {
+    const v = val / 100;
+    const vOverlay = document.getElementById('v-overlay');
+    const vRed = document.getElementById('v-red-canvas');
+    if (vOverlay) vOverlay.style.opacity = v;
+    if (vRed) vRed.style.opacity = v;
+}
+
+// ── Init ───────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+    showView('home');
+    setNavActive('home');
+    setViewMode('swipe'); // init compare state
+    executeSearch();      // preload results for home table
     
-    <script src="/static/lib/three.min.js"></script>
-    <script src="/static/globe.js"></script>
+    // Auto-generate red canvas when mask loads
+    const vMask = document.getElementById('v-mask');
+    if (vMask) {
+        vMask.addEventListener('load', function() {
+            const canvas = document.getElementById('v-red-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d', { willReadFrequently: true });
+            canvas.width = this.naturalWidth;
+            canvas.height = this.naturalHeight;
+            ctx.drawImage(this, 0, 0);
+            
+            const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const data = imgData.data;
+            for (let i = 0; i < data.length; i += 4) {
+                if (data[i] > 127) { // white -> red
+                    data[i] = 255;
+                    data[i+1] = 60;
+                    data[i+2] = 0;
+                    data[i+3] = 255;
+                } else { // black -> transparent
+                    data[i+3] = 0;
+                }
+            }
+            ctx.putImageData(imgData, 0, 0);
+        });
+    }
+});
+</script>
+
 </body>
 </html>
